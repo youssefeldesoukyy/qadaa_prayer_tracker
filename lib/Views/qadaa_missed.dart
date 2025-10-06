@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:qadaa_prayer_tracker/Views/daily_plan.dart';
 
 class QadaaMissed extends StatefulWidget {
   const QadaaMissed({super.key});
@@ -22,7 +23,6 @@ class _QadaaMissedState extends State<QadaaMissed> {
   final _asr = TextEditingController();
   final _maghrib = TextEditingController();
   final _isha = TextEditingController();
-
 
   final _digitsOnly = [FilteringTextInputFormatter.digitsOnly];
 
@@ -79,7 +79,9 @@ class _QadaaMissedState extends State<QadaaMissed> {
                 const SizedBox(height: 24),
                 _buildModeSwitch(),
                 const SizedBox(height: 20),
-                if (_mode == QadaMode.timePeriod) _buildTimeFields() else
+                if (_mode == QadaMode.timePeriod)
+                  _buildTimeFields()
+                else
                   _buildManualFields(),
                 const SizedBox(height: 12),
                 ElevatedButton(
@@ -91,7 +93,26 @@ class _QadaaMissedState extends State<QadaaMissed> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    final y = int.tryParse(_years.text) ?? 0;
+                    final m = int.tryParse(_months.text) ?? 0;
+                    final d = int.tryParse(_days.text) ?? 0;
+                    final totalDays = y * 365 + m * 30 + d;
+
+                    final totals = DailyTotals(
+                      fajr: totalDays,
+                      dhuhr: totalDays,
+                      asr: totalDays,
+                      maghrib: totalDays,
+                      isha: totalDays,
+                    );
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => DailyPlan(totals: totals)),
+                    );
+                  },
                   child: const Text(
                     'Create My Plan',
                     style: TextStyle(fontWeight: FontWeight.bold),

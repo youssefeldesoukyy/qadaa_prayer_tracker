@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'package:qadaa_prayer_tracker/Views/daily_plan.dart';
 
 class QadaaMissed extends StatefulWidget {
@@ -94,18 +95,46 @@ class _QadaaMissedState extends State<QadaaMissed> {
                     ),
                   ),
                   onPressed: () {
-                    final y = int.tryParse(_years.text) ?? 0;
-                    final m = int.tryParse(_months.text) ?? 0;
-                    final d = int.tryParse(_days.text) ?? 0;
-                    final totalDays = y * 365 + m * 30 + d;
+                    late DailyTotals totals;
 
-                    final totals = DailyTotals(
-                      fajr: totalDays,
-                      dhuhr: totalDays,
-                      asr: totalDays,
-                      maghrib: totalDays,
-                      isha: totalDays,
-                    );
+                    if (_mode == QadaMode.timePeriod) {
+                      final y = int.tryParse(_years.text) ?? 0;
+                      final m = int.tryParse(_months.text) ?? 0;
+                      final d = int.tryParse(_days.text) ?? 0;
+
+                      final totalDays = (y * 365) + (m * 30) + d;
+
+                      if (totalDays == 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content:
+                                  Text('Please enter a valid time period.')),
+                        );
+                        return;
+                      }
+
+                      totals = DailyTotals(
+                        fajr: totalDays,
+                        dhuhr: totalDays,
+                        asr: totalDays,
+                        maghrib: totalDays,
+                        isha: totalDays,
+                      );
+                    } else {
+                      final f = int.tryParse(_fajr.text) ?? 0;
+                      final d = int.tryParse(_dhuhr.text) ?? 0;
+                      final a = int.tryParse(_asr.text) ?? 0;
+                      final m = int.tryParse(_maghrib.text) ?? 0;
+                      final i = int.tryParse(_isha.text) ?? 0;
+
+                      totals = DailyTotals(
+                        fajr: f,
+                        dhuhr: d,
+                        asr: a,
+                        maghrib: m,
+                        isha: i,
+                      );
+                    }
 
                     Navigator.push(
                       context,

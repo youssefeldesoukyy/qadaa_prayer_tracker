@@ -250,8 +250,6 @@ class _HomeDashboardState extends State<HomeDashboard> {
     );
   }
 
-  // ---------- Pages ----------
-
   Widget _homePage() {
     final percentText = '${(_progress * 100).toStringAsFixed(0)}%';
 

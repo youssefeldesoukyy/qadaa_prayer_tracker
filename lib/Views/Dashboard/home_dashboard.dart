@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
+import 'package:qadaa_prayer_tracker/Views/Dashboard/stats_dashboard.dart';
+import 'package:qadaa_prayer_tracker/Views/Dashboard/settings_dashboard.dart';
 
 class HomeDashboard extends StatefulWidget {
   final DailyTotals initial;
@@ -34,40 +36,150 @@ class _HomeDashboardState extends State<HomeDashboard> {
       _totalInitial == 0 ? 0 : _totalCompleted / _totalInitial;
 
   void _logOne(String prayerKey) {
+    bool logged = false;
     setState(() {
       switch (prayerKey) {
         case 'fajr':
           if (_remaining.fajr > 0) {
             _remaining = _remaining.copyWith(fajr: _remaining.fajr - 1);
             _totalCompleted += 1;
+            logged = true;
           }
           break;
         case 'dhuhr':
           if (_remaining.dhuhr > 0) {
             _remaining = _remaining.copyWith(dhuhr: _remaining.dhuhr - 1);
             _totalCompleted += 1;
+            logged = true;
           }
           break;
         case 'asr':
           if (_remaining.asr > 0) {
             _remaining = _remaining.copyWith(asr: _remaining.asr - 1);
             _totalCompleted += 1;
+            logged = true;
           }
           break;
         case 'maghrib':
           if (_remaining.maghrib > 0) {
             _remaining = _remaining.copyWith(maghrib: _remaining.maghrib - 1);
             _totalCompleted += 1;
+            logged = true;
           }
           break;
         case 'isha':
           if (_remaining.isha > 0) {
             _remaining = _remaining.copyWith(isha: _remaining.isha - 1);
             _totalCompleted += 1;
+            logged = true;
           }
           break;
       }
     });
+
+    final label = {
+      'fajr': 'Fajr',
+      'dhuhr': 'Dhuhr',
+      'asr': 'Asr',
+      'maghrib': 'Maghrib',
+      'isha': 'Isha',
+    }[prayerKey] ?? prayerKey;
+
+    final isSuccess = logged;
+    final title = isSuccess ? 'Prayer logged! 🙌' : 'Nothing to log';
+    final subtitle =
+        isSuccess ? '$label prayer completed.' : 'No $label remaining.';
+
+    _showCenteredNotice(
+      title: title,
+      subtitle: subtitle
+    );
+  }
+
+  void _showCenteredNotice({
+    required String title,
+    required String subtitle,
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Dismiss',
+      barrierColor: Colors.black.withOpacity(0.4),
+      transitionDuration: const Duration(milliseconds: 200),
+      pageBuilder: (ctx, anim1, anim2) {
+        Future.delayed(const Duration(seconds: 2), () {
+          if (Navigator.of(ctx).canPop()) {
+            Navigator.of(ctx).pop();
+          }
+        });
+        return Center(
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.black.withOpacity(0.08)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: Colors.black54,
+                    ),
+                  ),
+                  if (actionLabel != null && onAction != null) ...[
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.of(ctx).maybePop();
+                          onAction();
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: const Color(0xFF2563EB),
+                        ),
+                        child: Text(actionLabel),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (ctx, anim, secondary, child) {
+        final curved = CurvedAnimation(
+          parent: anim,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        return FadeTransition(
+          opacity: curved,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.95, end: 1).animate(curved),
+            child: child,
+          ),
+        );
+      },
+    );
   }
 
   void _openLogDialog() {
@@ -370,20 +482,18 @@ class _HomeDashboardState extends State<HomeDashboard> {
   }
 
   Widget _statsPage() {
-    return const SafeArea(
-      child: Center(
-        child: Text('Stats (coming soon)',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-      ),
+    return StatsDashboard(
+      initial: _initial,
+      remaining: _remaining,
+      perDay: widget.perDay,
     );
   }
 
   Widget _settingsPage() {
-    return const SafeArea(
-      child: Center(
-        child: Text('Settings (coming soon)',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-      ),
+    return SettingsDashboard(
+      initial: _initial,
+      remaining: _remaining,
+      perDay: widget.perDay,
     );
   }
 

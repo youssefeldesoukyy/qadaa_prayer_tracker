@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
-import 'home_dashboard.dart';
+import 'Dashboard/home_dashboard.dart';
 
 class DailyPlan extends StatefulWidget {
   final DailyTotals totals;

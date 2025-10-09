@@ -5,7 +5,15 @@ import 'Dashboard/home_dashboard.dart';
 
 class DailyPlan extends StatefulWidget {
   final DailyTotals totals;
-  const DailyPlan({super.key, required this.totals});
+  final Map<String, int>? perDay;
+  final bool fromSettings;
+
+  const DailyPlan({
+    super.key,
+    required this.totals,
+    this.perDay,
+    this.fromSettings = false,
+  });
 
   @override
   State<DailyPlan> createState() => _DailyPlanState();
@@ -14,11 +22,21 @@ class DailyPlan extends StatefulWidget {
 class _DailyPlanState extends State<DailyPlan> {
   final _digitsOnly = [FilteringTextInputFormatter.digitsOnly];
 
-  final _fajrPerDay = TextEditingController(text: '1');
-  final _dhuhrPerDay = TextEditingController(text: '1');
-  final _asrPerDay = TextEditingController(text: '1');
-  final _maghribPerDay = TextEditingController(text: '1');
-  final _ishaPerDay = TextEditingController(text: '1');
+  final _fajrPerDay = TextEditingController();
+  final _dhuhrPerDay = TextEditingController();
+  final _asrPerDay = TextEditingController();
+  final _maghribPerDay = TextEditingController();
+  final _ishaPerDay = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _fajrPerDay.text = widget.perDay?['fajr']?.toString() ?? '';
+    _dhuhrPerDay.text = widget.perDay?['dhuhr']?.toString() ?? '';
+    _asrPerDay.text = widget.perDay?['asr']?.toString() ?? '';
+    _maghribPerDay.text = widget.perDay?['maghrib']?.toString() ?? '';
+    _ishaPerDay.text = widget.perDay?['isha']?.toString() ?? '';
+  }
 
   @override
   void dispose() {
@@ -45,15 +63,22 @@ class _DailyPlanState extends State<DailyPlan> {
       'isha': _int(_ishaPerDay),
     };
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => HomeDashboard(
-          initial: widget.totals,
-          perDay: perDay,
+    if (widget.fromSettings) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Daily plan updated successfully!')),
+      );
+      Navigator.pop(context, perDay);
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => HomeDashboard(
+            initial: widget.totals,
+            perDay: perDay,
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   Widget _rowField(String label, int remaining, TextEditingController c) {
@@ -62,25 +87,36 @@ class _DailyPlanState extends State<DailyPlan> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            Text(label,
-                style:
-                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
-            const Spacer(),
-            Text('$remaining remaining',
-                style: const TextStyle(color: Colors.black54)),
-          ]),
+          Row(
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '$remaining remaining',
+                style: const TextStyle(color: Colors.black54),
+              ),
+            ],
+          ),
           const SizedBox(height: 8),
           TextField(
             controller: c,
             keyboardType: TextInputType.number,
             inputFormatters: _digitsOnly,
             decoration: InputDecoration(
-              hintText: '1',
+              hintText: '0',
+              hintStyle: const TextStyle(color: Colors.grey),
+              floatingLabelBehavior: FloatingLabelBehavior.always,
               contentPadding:
-                  const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           ),
         ],
@@ -110,13 +146,18 @@ class _DailyPlanState extends State<DailyPlan> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('Set Your Daily Plan',
-                      style:
-                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Set Your Daily Plan',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   const Text(
-                      'How many Qada prayers can you commit to each day?',
-                      style: TextStyle(color: Colors.black54)),
+                    'How many Qada prayers can you commit to each day?',
+                    style: TextStyle(color: Colors.black54),
+                  ),
                   const SizedBox(height: 24),
                   _rowField('Fajr', t.fajr, _fajrPerDay),
                   _rowField('Dhuhr', t.dhuhr, _dhuhrPerDay),
@@ -131,10 +172,13 @@ class _DailyPlanState extends State<DailyPlan> {
                       foregroundColor: Colors.white,
                       minimumSize: const Size.fromHeight(50),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
-                    child: const Text('Save Plan',
-                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    child: const Text(
+                      'Save Plan',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
                   ),
                 ],
               ),

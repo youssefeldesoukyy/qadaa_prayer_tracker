@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'package:qadaa_prayer_tracker/Views/daily_plan.dart';
+import 'package:qadaa_prayer_tracker/Views/qadaa_missed.dart';
 
 class SettingsDashboard extends StatefulWidget {
   final DailyTotals initial;
@@ -24,43 +25,68 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
   int get _totalCompleted => widget.initial.sum - widget.remaining.sum;
   int get _totalRemaining => widget.remaining.sum;
 
-  void _editDailyPlan() {
-    Navigator.push(
+  // -------------------
+  // ACTIONS
+  // -------------------
+
+  void _editDailyPlan() async {
+    final updatedPlan = await Navigator.push<Map<String, int>>(
       context,
       MaterialPageRoute(
-        builder: (_) => DailyPlan(totals: widget.initial),
+        builder: (_) => DailyPlan(
+          totals: widget.initial,
+          perDay: widget.perDay,
+          fromSettings: true,
+        ),
       ),
     );
+
+    if (updatedPlan != null) {
+      setState(() {
+        widget.perDay?.addAll(updatedPlan);
+      });
+    }
   }
 
   void _resetAllData() {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Reset All Data'),
+        title: const Text('Are you sure?'),
         content: const Text(
-          'This will permanently delete all your progress and reset the app to its initial state. This action cannot be undone.',
+          'This will permanently delete all your data including your progress, plan, and prayer logs.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text('Cancel'),
           ),
-          TextButton(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () {
               Navigator.pop(ctx);
-              // TODO: Implement actual reset logic
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const QadaaMissed()),
+                    (route) => false,
+              );
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Data reset (placeholder)')),
+                const SnackBar(content: Text('All data has been reset.')),
               );
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Reset'),
+            child: const Text('Yes, Reset Everything'),
           ),
         ],
       ),
     );
   }
+
+  // -------------------
+  // MAIN BUILD
+  // -------------------
 
   @override
   Widget build(BuildContext context) {
@@ -70,34 +96,23 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Settings',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+            const Text(
+              'Settings',
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+            ),
             const SizedBox(height: 4),
-            const Text('Preferences',
-                style: TextStyle(color: Colors.black54)),
+            const Text('Preferences', style: TextStyle(color: Colors.black54)),
             const SizedBox(height: 24),
 
-            // Current Status Card
             _statusCard(),
-
             const SizedBox(height: 16),
-
-            // Daily Plan Card
             _dailyPlanCard(),
-
             const SizedBox(height: 16),
-
-            // Language Card
             _languageCard(),
-
             const SizedBox(height: 16),
-
-            // Danger Zone Card
             _dangerZoneCard(),
 
             const SizedBox(height: 32),
-
-            // Footer
             _footer(),
           ],
         ),
@@ -105,17 +120,23 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
     );
   }
 
+  // -------------------
+  // UI SECTIONS
+  // -------------------
+
   Widget _statusCard() {
     return _card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: [
-              const Icon(Icons.info_outline, color: Colors.black54),
-              const SizedBox(width: 8),
-              const Text('Current Status',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+            children: const [
+              Icon(Icons.info_outline, color: Colors.black54),
+              SizedBox(width: 8),
+              Text(
+                'Current Status',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -134,11 +155,15 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Daily Plan',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+          const Text(
+            'Daily Plan',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: 4),
-          const Text('How many Qada prayers can you commit to each day?',
-              style: TextStyle(color: Colors.black54)),
+          const Text(
+            'How many Qada prayers can you commit to each day?',
+            style: TextStyle(color: Colors.black54),
+          ),
           const SizedBox(height: 16),
           _planRow('Fajr', widget.perDay?['fajr'] ?? 1),
           _planRow('Dhuhr', widget.perDay?['dhuhr'] ?? 1),
@@ -153,6 +178,7 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
               icon: const Icon(Icons.edit, size: 18),
               label: const Text('Edit Plan'),
               style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF2563EB),
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -171,11 +197,13 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: [
-              const Icon(Icons.language, color: Colors.black54),
-              const SizedBox(width: 8),
-              const Text('Language',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+            children: const [
+              Icon(Icons.language, color: Colors.black54),
+              SizedBox(width: 8),
+              Text(
+                'Language',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -185,7 +213,7 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
                 child: _languageButton(
                   'English',
                   _selectedLanguage == 'English',
-                  () => setState(() => _selectedLanguage = 'English'),
+                      () => setState(() => _selectedLanguage = 'English'),
                 ),
               ),
               const SizedBox(width: 12),
@@ -193,7 +221,7 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
                 child: _languageButton(
                   'Arabic',
                   _selectedLanguage == 'Arabic',
-                  () => setState(() => _selectedLanguage = 'Arabic'),
+                      () => setState(() => _selectedLanguage = 'Arabic'),
                 ),
               ),
             ],
@@ -215,12 +243,14 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Danger Zone',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Colors.red,
-              )),
+          const Text(
+            'Danger Zone',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Colors.red,
+            ),
+          ),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
@@ -245,11 +275,13 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
 
   Widget _footer() {
     return Column(
-      children: [
-        const Text('Qadaa Tracker v1.0',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 4),
-        const Text(
+      children: const [
+        Text(
+          'Qadaa Tracker v1.0',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        SizedBox(height: 4),
+        Text(
           'Track and complete your missed prayers with clarity and peace.',
           style: TextStyle(color: Colors.black54),
           textAlign: TextAlign.center,
@@ -257,6 +289,10 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
       ],
     );
   }
+
+  // -------------------
+  // REUSABLE WIDGETS
+  // -------------------
 
   Widget _card({required Widget child}) {
     return Container(
@@ -276,12 +312,14 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: const TextStyle(fontSize: 16)),
-        Text(value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: valueColor,
-            )),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: valueColor,
+          ),
+        ),
       ],
     );
   }
@@ -293,17 +331,20 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(prayer, style: const TextStyle(fontSize: 16)),
-          Text('$count per day',
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.black54,
-              )),
+          Text(
+            '$count per day',
+            style: const TextStyle(fontSize: 16, color: Colors.black54),
+          ),
         ],
       ),
     );
   }
 
-  Widget _languageButton(String language, bool isSelected, VoidCallback onTap) {
+  Widget _languageButton(
+      String language,
+      bool isSelected,
+      VoidCallback onTap,
+      ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -312,7 +353,9 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
           color: isSelected ? const Color(0xFF2563EB) : Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected ? const Color(0xFF2563EB) : Colors.grey.shade300,
+            color: isSelected
+                ? const Color(0xFF2563EB)
+                : Colors.grey.shade300,
           ),
         ),
         child: Text(

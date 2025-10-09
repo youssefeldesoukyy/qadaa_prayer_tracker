@@ -7,7 +7,11 @@ class HomeDashboard extends StatefulWidget {
   final DailyTotals initial;
   final Map<String, int>? perDay;
 
-  const HomeDashboard({super.key, required this.initial, this.perDay});
+  const HomeDashboard({
+    super.key,
+    required this.initial,
+    this.perDay,
+  });
 
   @override
   State<HomeDashboard> createState() => _HomeDashboardState();
@@ -15,7 +19,6 @@ class HomeDashboard extends StatefulWidget {
 
 class _HomeDashboardState extends State<HomeDashboard> {
   int _tabIndex = 0;
-
   late DailyTotals _initial;
   late DailyTotals _remaining;
   int _totalCompleted = 0;
@@ -29,14 +32,17 @@ class _HomeDashboardState extends State<HomeDashboard> {
   }
 
   int get _totalInitial => _initial.sum;
-
   int get _totalRemaining => _remaining.sum;
-
   double get _progress =>
       _totalInitial == 0 ? 0 : _totalCompleted / _totalInitial;
 
+  // -------------------
+  // LOGIC FUNCTIONS
+  // -------------------
+
   void _logOne(String prayerKey) {
     bool logged = false;
+
     setState(() {
       switch (prayerKey) {
         case 'fajr':
@@ -88,12 +94,9 @@ class _HomeDashboardState extends State<HomeDashboard> {
     final isSuccess = logged;
     final title = isSuccess ? 'Prayer logged! 🙌' : 'Nothing to log';
     final subtitle =
-        isSuccess ? '$label prayer completed.' : 'No $label remaining.';
+    isSuccess ? '$label prayer completed.' : 'No $label remaining.';
 
-    _showCenteredNotice(
-      title: title,
-      subtitle: subtitle
-    );
+    _showCenteredNotice(title: title, subtitle: subtitle);
   }
 
   void _showCenteredNotice({
@@ -114,6 +117,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
             Navigator.of(ctx).pop();
           }
         });
+
         return Center(
           child: Material(
             color: Colors.transparent,
@@ -139,9 +143,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                   const SizedBox(height: 6),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      color: Colors.black54,
-                    ),
+                    style: const TextStyle(color: Colors.black54),
                   ),
                   if (actionLabel != null && onAction != null) ...[
                     const SizedBox(height: 12),
@@ -188,10 +190,10 @@ class _HomeDashboardState extends State<HomeDashboard> {
       barrierDismissible: true,
       builder: (ctx) {
         return Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          insetPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           child: SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
@@ -205,18 +207,25 @@ class _HomeDashboardState extends State<HomeDashboard> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Log Qada Prayer',
-                                style: TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.w700)),
+                            Text(
+                              'Log Qada Prayer',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                             SizedBox(height: 4),
-                            Text('Which prayer did you complete?',
-                                style: TextStyle(color: Colors.black54)),
+                            Text(
+                              'Which prayer did you complete?',
+                              style: TextStyle(color: Colors.black54),
+                            ),
                           ],
                         ),
                       ),
                       IconButton(
-                          onPressed: () => Navigator.pop(ctx),
-                          icon: const Icon(Icons.close)),
+                        onPressed: () => Navigator.pop(ctx),
+                        icon: const Icon(Icons.close),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -255,11 +264,13 @@ class _HomeDashboardState extends State<HomeDashboard> {
     );
   }
 
-  Widget _logTile(BuildContext ctx,
-      {required IconData icon,
-      required String label,
-      required int remaining,
-      required String keyName}) {
+  Widget _logTile(
+      BuildContext ctx, {
+        required IconData icon,
+        required String label,
+        required int remaining,
+        required String keyName,
+      }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: InkWell(
@@ -280,18 +291,28 @@ class _HomeDashboardState extends State<HomeDashboard> {
               Icon(icon, color: const Color(0xFF2563EB)),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(label,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 16)),
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
               ),
-              Text('$remaining remaining',
-                  style: const TextStyle(color: Colors.black54)),
+              Text(
+                '$remaining remaining',
+                style: const TextStyle(color: Colors.black54),
+              ),
             ],
           ),
         ),
       ),
     );
   }
+
+  // -------------------
+  // HOME UI
+  // -------------------
 
   Widget _statCard(String title, String value, {Color? valueColor}) {
     return Expanded(
@@ -304,11 +325,14 @@ class _HomeDashboardState extends State<HomeDashboard> {
         ),
         child: Column(
           children: [
-            Text(value,
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: valueColor ?? Colors.black)),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: valueColor ?? Colors.black,
+              ),
+            ),
             const SizedBox(height: 6),
             Text(title, style: const TextStyle(color: Colors.black54)),
           ],
@@ -317,11 +341,12 @@ class _HomeDashboardState extends State<HomeDashboard> {
     );
   }
 
-  Widget _breakdownRow(
-      {required IconData icon,
-      required String label,
-      required int initial,
-      required int remaining}) {
+  Widget _breakdownRow({
+    required IconData icon,
+    required String label,
+    required int initial,
+    required int remaining,
+  }) {
     final completed = (initial - remaining).clamp(0, initial);
     final pct = initial == 0 ? 0.0 : completed / initial;
 
@@ -334,9 +359,13 @@ class _HomeDashboardState extends State<HomeDashboard> {
               Icon(icon, color: const Color(0xFF2563EB)),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(label,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 16)),
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
               ),
               Text('$completed/$initial'),
             ],
@@ -354,8 +383,10 @@ class _HomeDashboardState extends State<HomeDashboard> {
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerRight,
-            child: Text('$remaining remaining',
-                style: const TextStyle(color: Colors.black54)),
+            child: Text(
+              '$remaining remaining',
+              style: const TextStyle(color: Colors.black54),
+            ),
           ),
         ],
       ),
@@ -370,46 +401,52 @@ class _HomeDashboardState extends State<HomeDashboard> {
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         child: Column(
           children: [
-            const Text('Qada Tracker',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+            const Text(
+              'Qada Tracker',
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+            ),
             const SizedBox(height: 4),
-            const Text('Total Progress',
-                style: TextStyle(color: Colors.black54)),
+            const Text('Total Progress', style: TextStyle(color: Colors.black54)),
             const SizedBox(height: 24),
             SizedBox(
               width: 180,
               height: 180,
-              child: Stack(alignment: Alignment.center, children: [
-                SizedBox(
-                  width: 180,
-                  height: 180,
-                  child: CircularProgressIndicator(
-                    value: _progress,
-                    strokeWidth: 14,
-                    backgroundColor: const Color(0xFFF1F2F4),
-                    color: const Color(0xFF2563EB),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  SizedBox(
+                    width: 180,
+                    height: 180,
+                    child: CircularProgressIndicator(
+                      value: _progress,
+                      strokeWidth: 14,
+                      backgroundColor: const Color(0xFFF1F2F4),
+                      color: const Color(0xFF2563EB),
+                    ),
                   ),
-                ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(percentText,
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        percentText,
                         style: const TextStyle(
-                            fontSize: 28, fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 4),
-                    const Text('Complete',
-                        style: TextStyle(color: Colors.black54)),
-                  ],
-                ),
-              ]),
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text('Complete', style: TextStyle(color: Colors.black54)),
+                    ],
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 24),
             Row(
               children: [
                 _statCard('Total Missed', '$_totalInitial'),
                 const SizedBox(width: 10),
-                _statCard('Total Completed', '$_totalCompleted',
-                    valueColor: Colors.green),
+                _statCard('Total Completed', '$_totalCompleted', valueColor: Colors.green),
                 const SizedBox(width: 10),
                 _statCard('Remaining', '$_totalRemaining',
                     valueColor: const Color(0xFF2563EB)),
@@ -427,9 +464,10 @@ class _HomeDashboardState extends State<HomeDashboard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Prayer Breakdown',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                  const Text(
+                    'Prayer Breakdown',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  ),
                   const SizedBox(height: 10),
                   _breakdownRow(
                       icon: Icons.nights_stay_outlined,
@@ -469,10 +507,13 @@ class _HomeDashboardState extends State<HomeDashboard> {
                   backgroundColor: const Color(0xFF2563EB),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                child: const Text('+  Log Qada Prayer',
-                    style: TextStyle(fontWeight: FontWeight.w600)),
+                child: const Text(
+                  '+ Log Qada Prayer',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
               ),
             ),
           ],
@@ -481,21 +522,25 @@ class _HomeDashboardState extends State<HomeDashboard> {
     );
   }
 
-  Widget _statsPage() {
-    return StatsDashboard(
-      initial: _initial,
-      remaining: _remaining,
-      perDay: widget.perDay,
-    );
-  }
+  // -------------------
+  // OTHER PAGES
+  // -------------------
 
-  Widget _settingsPage() {
-    return SettingsDashboard(
-      initial: _initial,
-      remaining: _remaining,
-      perDay: widget.perDay,
-    );
-  }
+  Widget _statsPage() => StatsDashboard(
+    initial: _initial,
+    remaining: _remaining,
+    perDay: widget.perDay,
+  );
+
+  Widget _settingsPage() => SettingsDashboard(
+    initial: _initial,
+    remaining: _remaining,
+    perDay: widget.perDay,
+  );
+
+  // -------------------
+  // MAIN BUILD
+  // -------------------
 
   @override
   Widget build(BuildContext context) {

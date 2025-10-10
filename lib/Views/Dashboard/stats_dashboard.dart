@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 
 class StatsDashboard extends StatelessWidget {
@@ -15,12 +16,13 @@ class StatsDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     // -------------------
     // DATA CALCULATIONS
     // -------------------
     final fajrCompleted = (initial.fajr - remaining.fajr).clamp(0, initial.fajr);
-    final dhuhrCompleted =
-    (initial.dhuhr - remaining.dhuhr).clamp(0, initial.dhuhr);
+    final dhuhrCompleted = (initial.dhuhr - remaining.dhuhr).clamp(0, initial.dhuhr);
     final asrCompleted = (initial.asr - remaining.asr).clamp(0, initial.asr);
     final maghribCompleted =
     (initial.maghrib - remaining.maghrib).clamp(0, initial.maghrib);
@@ -37,8 +39,7 @@ class StatsDashboard extends StatelessWidget {
         (perDayTotals['maghrib'] ?? 0) +
         (perDayTotals['isha'] ?? 0);
 
-    final daysRemaining =
-    perDaySum > 0 ? (totalRemaining / perDaySum).ceil() : null;
+    final daysRemaining = perDaySum > 0 ? (totalRemaining / perDaySum).ceil() : null;
     final estimatedFinishDate = daysRemaining != null
         ? DateTime.now().add(Duration(days: daysRemaining))
         : null;
@@ -57,19 +58,19 @@ class StatsDashboard extends StatelessWidget {
     }
 
     String fmtDate(DateTime d) {
-      const months = [
-        'January',
-        'February',
-        'March',
-        'April',
-        'May',
-        'June',
-        'July',
-        'August',
-        'September',
-        'October',
-        'November',
-        'December'
+      final months = [
+        loc.january,
+        loc.february,
+        loc.march,
+        loc.april,
+        loc.may,
+        loc.june,
+        loc.july,
+        loc.august,
+        loc.september,
+        loc.october,
+        loc.november,
+        loc.december
       ];
       return '${months[d.month - 1]} ${d.day}, ${d.year}';
     }
@@ -83,12 +84,12 @@ class StatsDashboard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Statistics',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+            Text(
+              loc.statistics,
+              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 4),
-            const Text('Total Progress', style: TextStyle(color: Colors.black54)),
+            Text(loc.totalProgress, style: const TextStyle(color: Colors.black54)),
             const SizedBox(height: 20),
 
             // KPI CARDS
@@ -97,14 +98,14 @@ class StatsDashboard extends StatelessWidget {
                 _kpiCard(
                   context,
                   value: '$currentStreak',
-                  label: 'Current Streak',
+                  label: loc.currentStreak,
                   icon: Icons.trending_up,
                 ),
                 const SizedBox(width: 16),
                 _kpiCard(
                   context,
                   value: '$completedThisWeek',
-                  label: 'Completed this week',
+                  label: loc.completedThisWeek,
                   icon: Icons.adjust_rounded,
                   iconColor: const Color(0xFF16A34A),
                 ),
@@ -117,21 +118,21 @@ class StatsDashboard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Weekly Progress',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  Text(
+                    loc.weeklyProgress,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 120),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      Text('Thu', style: TextStyle(color: Colors.black54)),
-                      Text('Fri', style: TextStyle(color: Colors.black54)),
-                      Text('Sat', style: TextStyle(color: Colors.black54)),
-                      Text('Sun', style: TextStyle(color: Colors.black54)),
-                      Text('Mon', style: TextStyle(color: Colors.black54)),
-                      Text('Tue', style: TextStyle(color: Colors.black54)),
-                      Text('Wed', style: TextStyle(color: Colors.black54)),
+                    children: [
+                      Text(loc.thu, style: const TextStyle(color: Colors.black54)),
+                      Text(loc.fri, style: const TextStyle(color: Colors.black54)),
+                      Text(loc.sat, style: const TextStyle(color: Colors.black54)),
+                      Text(loc.sun, style: const TextStyle(color: Colors.black54)),
+                      Text(loc.mon, style: const TextStyle(color: Colors.black54)),
+                      Text(loc.tue, style: const TextStyle(color: Colors.black54)),
+                      Text(loc.wed, style: const TextStyle(color: Colors.black54)),
                     ],
                   )
                 ],
@@ -141,13 +142,13 @@ class StatsDashboard extends StatelessWidget {
 
             // ESTIMATED FINISH
             _gradientInfoCard(
-              title: 'Estimated Finish Date',
+              title: loc.estimatedFinishDate,
               value: estimatedFinishDate != null
                   ? fmtDate(estimatedFinishDate)
-                  : 'No daily plan',
+                  : loc.noDailyPlan,
               subtitle: perDaySum > 0
-                  ? 'At your current pace'
-                  : 'Set a daily plan to estimate finish date',
+                  ? loc.atCurrentPace
+                  : loc.setDailyPlanToEstimate,
             ),
             const SizedBox(height: 20),
 
@@ -156,43 +157,43 @@ class StatsDashboard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Prayer Breakdown',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  Text(
+                    loc.prayerBreakdown,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 16),
                   _breakdownRow(
                     context,
                     icon: Icons.nights_stay_outlined,
-                    label: 'Fajr',
+                    label: loc.fajr,
                     count: '$fajrCompleted/${initial.fajr}',
                     percent: percentStr(fajrCompleted, initial.fajr),
                   ),
                   _breakdownRow(
                     context,
                     icon: Icons.wb_sunny_outlined,
-                    label: 'Dhuhr',
+                    label: loc.dhuhr,
                     count: '$dhuhrCompleted/${initial.dhuhr}',
                     percent: percentStr(dhuhrCompleted, initial.dhuhr),
                   ),
                   _breakdownRow(
                     context,
                     icon: Icons.wb_twilight_outlined,
-                    label: 'Asr',
+                    label: loc.asr,
                     count: '$asrCompleted/${initial.asr}',
                     percent: percentStr(asrCompleted, initial.asr),
                   ),
                   _breakdownRow(
                     context,
                     icon: Icons.brightness_3_outlined,
-                    label: 'Maghrib',
+                    label: loc.maghrib,
                     count: '$maghribCompleted/${initial.maghrib}',
                     percent: percentStr(maghribCompleted, initial.maghrib),
                   ),
                   _breakdownRow(
                     context,
                     icon: Icons.star_border,
-                    label: 'Isha',
+                    label: loc.isha,
                     count: '$ishaCompleted/${initial.isha}',
                     percent: percentStr(ishaCompleted, initial.isha),
                   ),

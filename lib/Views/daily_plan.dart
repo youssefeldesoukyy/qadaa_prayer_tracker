@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'Dashboard/home_dashboard.dart';
 
@@ -55,6 +56,8 @@ class _DailyPlanState extends State<DailyPlan> {
   int _int(TextEditingController c) => int.tryParse(c.text.trim()) ?? 0;
 
   void _saveAndGo() {
+    final loc = AppLocalizations.of(context)!;
+
     final perDay = {
       'fajr': _int(_fajrPerDay),
       'dhuhr': _int(_dhuhrPerDay),
@@ -63,9 +66,18 @@ class _DailyPlanState extends State<DailyPlan> {
       'isha': _int(_ishaPerDay),
     };
 
+    // Validation (optional)
+    final isAllZero = perDay.values.every((v) => v == 0);
+    if (isAllZero) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loc.pleaseEnterValidPeriod)),
+      );
+      return;
+    }
+
     if (widget.fromSettings) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Daily plan updated successfully!')),
+        SnackBar(content: Text(loc.dailyPlanUpdated)),
       );
       Navigator.pop(context, perDay);
     } else {
@@ -82,6 +94,7 @@ class _DailyPlanState extends State<DailyPlan> {
   }
 
   Widget _rowField(String label, int remaining, TextEditingController c) {
+    final loc = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Column(
@@ -98,7 +111,7 @@ class _DailyPlanState extends State<DailyPlan> {
               ),
               const Spacer(),
               Text(
-                '$remaining remaining',
+                '$remaining ${loc.remaining}',
                 style: const TextStyle(color: Colors.black54),
               ),
             ],
@@ -126,6 +139,7 @@ class _DailyPlanState extends State<DailyPlan> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     final t = widget.totals;
 
     return Scaffold(
@@ -146,24 +160,24 @@ class _DailyPlanState extends State<DailyPlan> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Set Your Daily Plan',
-                    style: TextStyle(
+                  Text(
+                    loc.setYourDailyPlan,
+                    style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'How many Qada prayers can you commit to each day?',
-                    style: TextStyle(color: Colors.black54),
+                  Text(
+                    loc.howManyQadaa,
+                    style: const TextStyle(color: Colors.black54),
                   ),
                   const SizedBox(height: 24),
-                  _rowField('Fajr', t.fajr, _fajrPerDay),
-                  _rowField('Dhuhr', t.dhuhr, _dhuhrPerDay),
-                  _rowField('Asr', t.asr, _asrPerDay),
-                  _rowField('Maghrib', t.maghrib, _maghribPerDay),
-                  _rowField('Isha', t.isha, _ishaPerDay),
+                  _rowField(loc.fajr, t.fajr, _fajrPerDay),
+                  _rowField(loc.dhuhr, t.dhuhr, _dhuhrPerDay),
+                  _rowField(loc.asr, t.asr, _asrPerDay),
+                  _rowField(loc.maghrib, t.maghrib, _maghribPerDay),
+                  _rowField(loc.isha, t.isha, _ishaPerDay),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: _saveAndGo,
@@ -175,9 +189,9 @@ class _DailyPlanState extends State<DailyPlan> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: const Text(
-                      'Save Plan',
-                      style: TextStyle(fontWeight: FontWeight.w600),
+                    child: Text(
+                      loc.savePlan,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],

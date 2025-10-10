@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'package:qadaa_prayer_tracker/Views/daily_plan.dart';
 
@@ -45,6 +46,8 @@ class _QadaaMissedState extends State<QadaaMissed> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
       body: Center(
@@ -61,28 +64,28 @@ class _QadaaMissedState extends State<QadaaMissed> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
-                  'Qada Tracker',
+                Text(
+                  loc.qadaaTracker,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Color(0xFF2563EB),
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Track and complete your missed prayers with clarity and peace.',
+                Text(
+                  loc.qadaaDescription,
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.black54),
+                  style: const TextStyle(color: Colors.black54),
                 ),
                 const SizedBox(height: 24),
-                _buildModeSwitch(),
+                _buildModeSwitch(loc),
                 const SizedBox(height: 20),
                 if (_mode == QadaMode.timePeriod)
-                  _buildTimeFields()
+                  _buildTimeFields(loc)
                 else
-                  _buildManualFields(),
+                  _buildManualFields(loc),
                 const SizedBox(height: 12),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -94,9 +97,9 @@ class _QadaaMissedState extends State<QadaaMissed> {
                     ),
                   ),
                   onPressed: _onCreatePlanPressed,
-                  child: const Text(
-                    'Create My Plan',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  child: Text(
+                    loc.createMyPlan,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -107,18 +110,18 @@ class _QadaaMissedState extends State<QadaaMissed> {
     );
   }
 
-  Widget _buildModeSwitch() {
+  Widget _buildModeSwitch(AppLocalizations loc) {
     return SizedBox(
       width: double.infinity,
       child: SegmentedButton<QadaMode>(
-        segments: const [
+        segments: [
           ButtonSegment<QadaMode>(
             value: QadaMode.timePeriod,
-            label: Text('Time Period'),
+            label: Text(loc.timePeriod),
           ),
           ButtonSegment<QadaMode>(
             value: QadaMode.manual,
-            label: Text('Manual Entry'),
+            label: Text(loc.manualEntry),
           ),
         ],
         selected: {_mode},
@@ -134,24 +137,24 @@ class _QadaaMissedState extends State<QadaaMissed> {
     );
   }
 
-  Widget _buildTimeFields() {
+  Widget _buildTimeFields(AppLocalizations loc) {
     return Column(
       children: [
-        _textField('Years', _years),
-        _textField('Months', _months),
-        _textField('Days', _days),
+        _textField(loc.years, _years),
+        _textField(loc.months, _months),
+        _textField(loc.days, _days),
       ],
     );
   }
 
-  Widget _buildManualFields() {
+  Widget _buildManualFields(AppLocalizations loc) {
     return Column(
       children: [
-        _textField('Fajr', _fajr),
-        _textField('Dhuhr', _dhuhr),
-        _textField('Asr', _asr),
-        _textField('Maghrib', _maghrib),
-        _textField('Isha', _isha),
+        _textField(loc.fajr, _fajr),
+        _textField(loc.dhuhr, _dhuhr),
+        _textField(loc.asr, _asr),
+        _textField(loc.maghrib, _maghrib),
+        _textField(loc.isha, _isha),
       ],
     );
   }
@@ -184,6 +187,7 @@ class _QadaaMissedState extends State<QadaaMissed> {
   }
 
   void _onCreatePlanPressed() {
+    final loc = AppLocalizations.of(context)!;
     late DailyTotals totals;
 
     if (_mode == QadaMode.timePeriod) {
@@ -195,7 +199,7 @@ class _QadaaMissedState extends State<QadaaMissed> {
 
       if (totalDays == 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter a valid time period.')),
+          SnackBar(content: Text(loc.pleaseEnterValidPeriod)),
         );
         return;
       }

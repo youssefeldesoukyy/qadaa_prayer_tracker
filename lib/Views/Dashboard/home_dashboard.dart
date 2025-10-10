@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
-import 'package:qadaa_prayer_tracker/Views/Dashboard/stats_dashboard.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/Views/Dashboard/settings_dashboard.dart';
+import 'package:qadaa_prayer_tracker/Views/Dashboard/stats_dashboard.dart';
+import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 
 class HomeDashboard extends StatefulWidget {
   final DailyTotals initial;
@@ -41,6 +42,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
   // -------------------
 
   void _logOne(String prayerKey) {
+    final loc = AppLocalizations.of(context)!;
     bool logged = false;
 
     setState(() {
@@ -83,18 +85,18 @@ class _HomeDashboardState extends State<HomeDashboard> {
       }
     });
 
-    final label = {
-      'fajr': 'Fajr',
-      'dhuhr': 'Dhuhr',
-      'asr': 'Asr',
-      'maghrib': 'Maghrib',
-      'isha': 'Isha',
-    }[prayerKey] ?? prayerKey;
+    final prayerNames = {
+      'fajr': loc.fajr,
+      'dhuhr': loc.dhuhr,
+      'asr': loc.asr,
+      'maghrib': loc.maghrib,
+      'isha': loc.isha,
+    };
 
-    final isSuccess = logged;
-    final title = isSuccess ? 'Prayer logged! 🙌' : 'Nothing to log';
+    final label = prayerNames[prayerKey] ?? prayerKey;
+    final title = logged ? loc.prayerLogged : loc.nothingToLog;
     final subtitle =
-    isSuccess ? '$label prayer completed.' : 'No $label remaining.';
+    logged ? loc.prayerCompleted(label) : loc.noPrayerRemaining(label);
 
     _showCenteredNotice(title: title, subtitle: subtitle);
   }
@@ -105,17 +107,16 @@ class _HomeDashboardState extends State<HomeDashboard> {
     String? actionLabel,
     VoidCallback? onAction,
   }) {
+    final loc = AppLocalizations.of(context)!;
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'Dismiss',
+      barrierLabel: loc.barrierDismiss,
       barrierColor: Colors.black.withOpacity(0.4),
       transitionDuration: const Duration(milliseconds: 200),
       pageBuilder: (ctx, anim1, anim2) {
         Future.delayed(const Duration(seconds: 2), () {
-          if (Navigator.of(ctx).canPop()) {
-            Navigator.of(ctx).pop();
-          }
+          if (Navigator.of(ctx).canPop()) Navigator.of(ctx).pop();
         });
 
         return Center(
@@ -141,10 +142,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(color: Colors.black54),
-                  ),
+                  Text(subtitle, style: const TextStyle(color: Colors.black54)),
                   if (actionLabel != null && onAction != null) ...[
                     const SizedBox(height: 12),
                     Align(
@@ -185,6 +183,8 @@ class _HomeDashboardState extends State<HomeDashboard> {
   }
 
   void _openLogDialog() {
+    final loc = AppLocalizations.of(context)!;
+
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -203,21 +203,21 @@ class _HomeDashboardState extends State<HomeDashboard> {
                 children: [
                   Row(
                     children: [
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Log Qada Prayer',
-                              style: TextStyle(
+                              loc.logQadaaPrayer,
+                              style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Text(
-                              'Which prayer did you complete?',
-                              style: TextStyle(color: Colors.black54),
+                              loc.whichPrayer,
+                              style: const TextStyle(color: Colors.black54),
                             ),
                           ],
                         ),
@@ -231,27 +231,27 @@ class _HomeDashboardState extends State<HomeDashboard> {
                   const SizedBox(height: 8),
                   _logTile(ctx,
                       icon: Icons.nights_stay_outlined,
-                      label: 'Fajr',
+                      label: loc.fajr,
                       remaining: _remaining.fajr,
                       keyName: 'fajr'),
                   _logTile(ctx,
                       icon: Icons.wb_sunny_outlined,
-                      label: 'Dhuhr',
+                      label: loc.dhuhr,
                       remaining: _remaining.dhuhr,
                       keyName: 'dhuhr'),
                   _logTile(ctx,
                       icon: Icons.wb_twilight_outlined,
-                      label: 'Asr',
+                      label: loc.asr,
                       remaining: _remaining.asr,
                       keyName: 'asr'),
                   _logTile(ctx,
                       icon: Icons.brightness_3_outlined,
-                      label: 'Maghrib',
+                      label: loc.maghrib,
                       remaining: _remaining.maghrib,
                       keyName: 'maghrib'),
                   _logTile(ctx,
                       icon: Icons.star_border,
-                      label: 'Isha',
+                      label: loc.isha,
                       remaining: _remaining.isha,
                       keyName: 'isha'),
                   const SizedBox(height: 8),
@@ -271,6 +271,8 @@ class _HomeDashboardState extends State<HomeDashboard> {
         required int remaining,
         required String keyName,
       }) {
+    final loc = AppLocalizations.of(ctx)!;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: InkWell(
@@ -300,7 +302,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                 ),
               ),
               Text(
-                '$remaining remaining',
+                '$remaining ${loc.remaining}',
                 style: const TextStyle(color: Colors.black54),
               ),
             ],
@@ -347,6 +349,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
     required int initial,
     required int remaining,
   }) {
+    final loc = AppLocalizations.of(context)!;
     final completed = (initial - remaining).clamp(0, initial);
     final pct = initial == 0 ? 0.0 : completed / initial;
 
@@ -384,7 +387,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
           Align(
             alignment: Alignment.centerRight,
             child: Text(
-              '$remaining remaining',
+              '$remaining ${loc.remaining}',
               style: const TextStyle(color: Colors.black54),
             ),
           ),
@@ -394,6 +397,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
   }
 
   Widget _homePage() {
+    final loc = AppLocalizations.of(context)!;
     final percentText = '${(_progress * 100).toStringAsFixed(0)}%';
 
     return SafeArea(
@@ -401,12 +405,12 @@ class _HomeDashboardState extends State<HomeDashboard> {
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         child: Column(
           children: [
-            const Text(
-              'Qada Tracker',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+            Text(
+              loc.qadaaTracker,
+              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 4),
-            const Text('Total Progress', style: TextStyle(color: Colors.black54)),
+            Text(loc.totalProgress, style: const TextStyle(color: Colors.black54)),
             const SizedBox(height: 24),
             SizedBox(
               width: 180,
@@ -435,7 +439,8 @@ class _HomeDashboardState extends State<HomeDashboard> {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      const Text('Complete', style: TextStyle(color: Colors.black54)),
+                      Text(loc.complete,
+                          style: const TextStyle(color: Colors.black54)),
                     ],
                   ),
                 ],
@@ -444,11 +449,12 @@ class _HomeDashboardState extends State<HomeDashboard> {
             const SizedBox(height: 24),
             Row(
               children: [
-                _statCard('Total Missed', '$_totalInitial'),
+                _statCard(loc.totalMissed, '$_totalInitial'),
                 const SizedBox(width: 10),
-                _statCard('Total Completed', '$_totalCompleted', valueColor: Colors.green),
+                _statCard(loc.totalCompleted, '$_totalCompleted',
+                    valueColor: Colors.green),
                 const SizedBox(width: 10),
-                _statCard('Remaining', '$_totalRemaining',
+                _statCard(loc.remainingPrayers, '$_totalRemaining',
                     valueColor: const Color(0xFF2563EB)),
               ],
             ),
@@ -464,34 +470,35 @@ class _HomeDashboardState extends State<HomeDashboard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Prayer Breakdown',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  Text(
+                    loc.prayerBreakdown,
+                    style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 10),
                   _breakdownRow(
                       icon: Icons.nights_stay_outlined,
-                      label: 'Fajr',
+                      label: loc.fajr,
                       initial: _initial.fajr,
                       remaining: _remaining.fajr),
                   _breakdownRow(
                       icon: Icons.wb_sunny_outlined,
-                      label: 'Dhuhr',
+                      label: loc.dhuhr,
                       initial: _initial.dhuhr,
                       remaining: _remaining.dhuhr),
                   _breakdownRow(
                       icon: Icons.wb_twilight_outlined,
-                      label: 'Asr',
+                      label: loc.asr,
                       initial: _initial.asr,
                       remaining: _remaining.asr),
                   _breakdownRow(
                       icon: Icons.brightness_3_outlined,
-                      label: 'Maghrib',
+                      label: loc.maghrib,
                       initial: _initial.maghrib,
                       remaining: _remaining.maghrib),
                   _breakdownRow(
                       icon: Icons.star_border,
-                      label: 'Isha',
+                      label: loc.isha,
                       initial: _initial.isha,
                       remaining: _remaining.isha),
                 ],
@@ -510,9 +517,9 @@ class _HomeDashboardState extends State<HomeDashboard> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  '+ Log Qada Prayer',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                child: Text(
+                  '+ ${loc.logQadaaPrayer}',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -544,6 +551,8 @@ class _HomeDashboardState extends State<HomeDashboard> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
       body: IndexedStack(
@@ -561,13 +570,13 @@ class _HomeDashboardState extends State<HomeDashboard> {
         selectedItemColor: const Color(0xFF2563EB),
         unselectedItemColor: Colors.black54,
         showUnselectedLabels: true,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined), label: 'Home'),
+              icon: const Icon(Icons.home_outlined), label: loc.home),
           BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart_rounded), label: 'Stats'),
+              icon: const Icon(Icons.bar_chart_rounded), label: loc.stats),
           BottomNavigationBarItem(
-              icon: Icon(Icons.settings_outlined), label: 'Settings'),
+              icon: const Icon(Icons.settings_outlined), label: loc.settings),
         ],
       ),
     );

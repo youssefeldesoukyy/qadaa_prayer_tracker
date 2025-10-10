@@ -1,0 +1,271 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for English (`en`).
+class AppLocalizationsEn extends AppLocalizations {
+  AppLocalizationsEn([String locale = 'en']) : super(locale);
+
+  @override
+  String get appTitle => 'Qadaa Tracker';
+
+  @override
+  String get qadaaTracker => 'Qadaa Tracker';
+
+  @override
+  String get qadaaDescription =>
+      'Track and complete your missed prayers with clarity and peace.';
+
+  @override
+  String get createMyPlan => 'Create My Plan';
+
+  @override
+  String get timePeriod => 'Time Period';
+
+  @override
+  String get manualEntry => 'Manual Entry';
+
+  @override
+  String get years => 'Years';
+
+  @override
+  String get months => 'Months';
+
+  @override
+  String get days => 'Days';
+
+  @override
+  String get fajr => 'Fajr';
+
+  @override
+  String get dhuhr => 'Dhuhr';
+
+  @override
+  String get asr => 'Asr';
+
+  @override
+  String get maghrib => 'Maghrib';
+
+  @override
+  String get isha => 'Isha';
+
+  @override
+  String get pleaseEnterValidPeriod => 'Please enter a valid time period.';
+
+  @override
+  String get setYourDailyPlan => 'Set Your Daily Plan';
+
+  @override
+  String get howManyQadaa =>
+      'How many Qadaa prayers can you commit to each day?';
+
+  @override
+  String get remaining => 'remaining';
+
+  @override
+  String get savePlan => 'Save Plan';
+
+  @override
+  String get dailyPlanUpdated => 'Daily plan updated successfully!';
+
+  @override
+  String get prayerLogged => 'Prayer logged! 🙌';
+
+  @override
+  String get nothingToLog => 'Nothing to log';
+
+  @override
+  String prayerCompleted(Object prayer) {
+    return '$prayer prayer completed.';
+  }
+
+  @override
+  String noPrayerRemaining(Object prayer) {
+    return 'No $prayer remaining.';
+  }
+
+  @override
+  String get logQadaaPrayer => 'Log Qadaa Prayer';
+
+  @override
+  String get whichPrayer => 'Which prayer did you complete?';
+
+  @override
+  String get totalProgress => 'Total Progress';
+
+  @override
+  String get complete => 'Complete';
+
+  @override
+  String get totalMissed => 'Total Missed';
+
+  @override
+  String get totalCompleted => 'Total Completed';
+
+  @override
+  String get remainingPrayers => 'Remaining';
+
+  @override
+  String get prayerBreakdown => 'Prayer Breakdown';
+
+  @override
+  String get home => 'Home';
+
+  @override
+  String get stats => 'Stats';
+
+  @override
+  String get settings => 'Settings';
+
+  @override
+  String get statistics => 'Statistics';
+
+  @override
+  String get currentStreak => 'Current Streak';
+
+  @override
+  String get completedThisWeek => 'Completed this week';
+
+  @override
+  String get weeklyProgress => 'Weekly Progress';
+
+  @override
+  String get estimatedFinishDate => 'Estimated Finish Date';
+
+  @override
+  String get noDailyPlan => 'No daily plan';
+
+  @override
+  String get atCurrentPace => 'At your current pace';
+
+  @override
+  String get setDailyPlanToEstimate =>
+      'Set a daily plan to estimate finish date';
+
+  @override
+  String get january => 'January';
+
+  @override
+  String get february => 'February';
+
+  @override
+  String get march => 'March';
+
+  @override
+  String get april => 'April';
+
+  @override
+  String get may => 'May';
+
+  @override
+  String get june => 'June';
+
+  @override
+  String get july => 'July';
+
+  @override
+  String get august => 'August';
+
+  @override
+  String get september => 'September';
+
+  @override
+  String get october => 'October';
+
+  @override
+  String get november => 'November';
+
+  @override
+  String get december => 'December';
+
+  @override
+  String get sun => 'Sun';
+
+  @override
+  String get mon => 'Mon';
+
+  @override
+  String get tue => 'Tue';
+
+  @override
+  String get wed => 'Wed';
+
+  @override
+  String get thu => 'Thu';
+
+  @override
+  String get fri => 'Fri';
+
+  @override
+  String get sat => 'Sat';
+
+  @override
+  String get preferences => 'Preferences';
+
+  @override
+  String get currentStatus => 'Current Status';
+
+  @override
+  String get completed => 'Completed';
+
+  @override
+  String get dailyPlan => 'Daily Plan';
+
+  @override
+  String get editPlan => 'Edit Plan';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get english => 'English';
+
+  @override
+  String get arabic => 'Arabic';
+
+  @override
+  String get dangerZone => 'Danger Zone';
+
+  @override
+  String get resetAllData => 'Reset All Data';
+
+  @override
+  String get areYouSure => 'Are you sure?';
+
+  @override
+  String get resetWarning =>
+      'This will permanently delete all your data including your progress, plan, and prayer logs.';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get yesResetEverything => 'Yes, Reset Everything';
+
+  @override
+  String get allDataReset => 'All data has been reset.';
+
+  @override
+  String get appVersion => 'Qadaa Tracker v1.0';
+
+  @override
+  String get barrierDismiss => 'Dismiss';
+
+  @override
+  String get resetTitle => 'Are you sure?';
+
+  @override
+  String get confirmReset => 'Yes, Reset Everything';
+
+  @override
+  String get prayers => 'prayers';
+
+  @override
+  String get footerSubtitle =>
+      'Track and complete your missed prayers with clarity and peace.';
+
+  @override
+  String get perDay => 'per day';
+}

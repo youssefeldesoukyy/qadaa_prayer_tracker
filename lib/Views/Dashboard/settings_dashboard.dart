@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:qadaa_prayer_tracker/main.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'package:qadaa_prayer_tracker/Views/daily_plan.dart';
 import 'package:qadaa_prayer_tracker/Views/qadaa_missed.dart';
@@ -49,17 +51,16 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
   }
 
   void _resetAllData() {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Are you sure?'),
-        content: const Text(
-          'This will permanently delete all your data including your progress, plan, and prayer logs.',
-        ),
+        title: Text(loc.resetTitle),
+        content: Text(loc.resetWarning),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(loc.cancel),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -74,10 +75,10 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
                     (route) => false,
               );
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('All data has been reset.')),
+                SnackBar(content: Text(loc.allDataReset)),
               );
             },
-            child: const Text('Yes, Reset Everything'),
+            child: Text(loc.confirmReset),
           ),
         ],
       ),
@@ -90,30 +91,32 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Settings',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+            Text(
+              loc.settings,
+              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 4),
-            const Text('Preferences', style: TextStyle(color: Colors.black54)),
+            Text(loc.preferences, style: const TextStyle(color: Colors.black54)),
             const SizedBox(height: 24),
 
-            _statusCard(),
+            _statusCard(loc),
             const SizedBox(height: 16),
-            _dailyPlanCard(),
+            _dailyPlanCard(loc),
             const SizedBox(height: 16),
-            _languageCard(),
+            _languageCard(loc),
             const SizedBox(height: 16),
-            _dangerZoneCard(),
+            _dangerZoneCard(loc),
 
             const SizedBox(height: 32),
-            _footer(),
+            _footer(loc),
           ],
         ),
       ),
@@ -124,59 +127,59 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
   // UI SECTIONS
   // -------------------
 
-  Widget _statusCard() {
+  Widget _statusCard(AppLocalizations loc) {
     return _card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
-              Icon(Icons.info_outline, color: Colors.black54),
-              SizedBox(width: 8),
+            children: [
+              const Icon(Icons.info_outline, color: Colors.black54),
+              const SizedBox(width: 8),
               Text(
-                'Current Status',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                loc.currentStatus,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          _statusRow('Total Missed', '${widget.initial.sum} prayers', Colors.black),
+          _statusRow('${loc.totalMissed}', '${widget.initial.sum} ${loc.prayers}', Colors.black),
           const SizedBox(height: 8),
-          _statusRow('Completed', '$_totalCompleted prayers', Colors.green),
+          _statusRow(loc.completed, '$_totalCompleted ${loc.prayers}', Colors.green),
           const SizedBox(height: 8),
-          _statusRow('Remaining', '$_totalRemaining prayers', const Color(0xFF2563EB)),
+          _statusRow(loc.remainingPrayers, '$_totalRemaining ${loc.prayers}', const Color(0xFF2563EB)),
         ],
       ),
     );
   }
 
-  Widget _dailyPlanCard() {
+  Widget _dailyPlanCard(AppLocalizations loc) {
     return _card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Daily Plan',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          Text(
+            loc.dailyPlan,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'How many Qada prayers can you commit to each day?',
-            style: TextStyle(color: Colors.black54),
+          Text(
+            loc.howManyQadaa,
+            style: const TextStyle(color: Colors.black54),
           ),
           const SizedBox(height: 16),
-          _planRow('Fajr', widget.perDay?['fajr'] ?? 1),
-          _planRow('Dhuhr', widget.perDay?['dhuhr'] ?? 1),
-          _planRow('Asr', widget.perDay?['asr'] ?? 1),
-          _planRow('Maghrib', widget.perDay?['maghrib'] ?? 1),
-          _planRow('Isha', widget.perDay?['isha'] ?? 1),
+          _planRow(loc.fajr, widget.perDay?['fajr'] ?? 1, loc),
+          _planRow(loc.dhuhr, widget.perDay?['dhuhr'] ?? 1, loc),
+          _planRow(loc.asr, widget.perDay?['asr'] ?? 1, loc),
+          _planRow(loc.maghrib, widget.perDay?['maghrib'] ?? 1, loc),
+          _planRow(loc.isha, widget.perDay?['isha'] ?? 1, loc),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: _editDailyPlan,
               icon: const Icon(Icons.edit, size: 18),
-              label: const Text('Edit Plan'),
+              label: Text(loc.editPlan),
               style: OutlinedButton.styleFrom(
                 foregroundColor: const Color(0xFF2563EB),
                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -191,18 +194,18 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
     );
   }
 
-  Widget _languageCard() {
+  Widget _languageCard(AppLocalizations loc) {
     return _card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
-              Icon(Icons.language, color: Colors.black54),
-              SizedBox(width: 8),
+            children: [
+              const Icon(Icons.language, color: Colors.black54),
+              const SizedBox(width: 8),
               Text(
-                'Language',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                loc.language,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -211,17 +214,23 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
             children: [
               Expanded(
                 child: _languageButton(
-                  'English',
+                  loc.english,
                   _selectedLanguage == 'English',
-                      () => setState(() => _selectedLanguage = 'English'),
+                      () {
+                    setState(() => _selectedLanguage = 'English');
+                    MyApp.setLocale(context, const Locale('en'));
+                  },
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _languageButton(
-                  'Arabic',
+                  loc.arabic,
                   _selectedLanguage == 'Arabic',
-                      () => setState(() => _selectedLanguage = 'Arabic'),
+                      () {
+                    setState(() => _selectedLanguage = 'Arabic');
+                    MyApp.setLocale(context, const Locale('ar'));
+                  },
                 ),
               ),
             ],
@@ -231,7 +240,7 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
     );
   }
 
-  Widget _dangerZoneCard() {
+  Widget _dangerZoneCard(AppLocalizations loc) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -243,9 +252,9 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Danger Zone',
-            style: TextStyle(
+          Text(
+            loc.dangerZone,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
               color: Colors.red,
@@ -257,7 +266,7 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
             child: ElevatedButton.icon(
               onPressed: _resetAllData,
               icon: const Icon(Icons.refresh, size: 18),
-              label: const Text('Reset All Data'),
+              label: Text(loc.resetAllData),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
@@ -273,17 +282,17 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
     );
   }
 
-  Widget _footer() {
+  Widget _footer(AppLocalizations loc) {
     return Column(
-      children: const [
+      children: [
         Text(
-          'Qadaa Tracker v1.0',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          loc.appVersion,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(
-          'Track and complete your missed prayers with clarity and peace.',
-          style: TextStyle(color: Colors.black54),
+          loc.footerSubtitle,
+          style: const TextStyle(color: Colors.black54),
           textAlign: TextAlign.center,
         ),
       ],
@@ -324,7 +333,7 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
     );
   }
 
-  Widget _planRow(String prayer, int count) {
+  Widget _planRow(String prayer, int count, AppLocalizations loc) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -332,7 +341,7 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
         children: [
           Text(prayer, style: const TextStyle(fontSize: 16)),
           Text(
-            '$count per day',
+            '$count ${loc.perDay}',
             style: const TextStyle(fontSize: 16, color: Colors.black54),
           ),
         ],

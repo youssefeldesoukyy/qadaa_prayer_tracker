@@ -9,10 +9,10 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
-  String get appTitle => 'متعقب القضاء';
+  String get appTitle => 'متتبع صلوات القضاء';
 
   @override
-  String get qadaaTracker => 'متعقب القضاء';
+  String get qadaaTracker => 'متتبع صلوات القضاء';
 
   @override
   String get qadaaDescription => 'تتبع وأكمل صلواتك الفائتة بوضوح وطمأنينة.';
@@ -60,7 +60,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get howManyQadaa => 'كم صلاة قضاء يمكنك الالتزام بها يوميًا؟';
 
   @override
-  String get remaining => 'المتبقية';
+  String get remaining => 'متبقية';
 
   @override
   String get savePlan => 'احفظ الخطة';
@@ -246,7 +246,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get allDataReset => 'تمت إعادة تعيين جميع البيانات.';
 
   @override
-  String get appVersion => 'متعقب القضاء الإصدار 1.0';
+  String get appVersion => 'متتبع صلوات القضاء الإصدار 1.0';
 
   @override
   String get barrierDismiss => 'إغلاق';

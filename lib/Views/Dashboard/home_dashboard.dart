@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/Views/Dashboard/settings_dashboard.dart';
 import 'package:qadaa_prayer_tracker/Views/Dashboard/stats_dashboard.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';

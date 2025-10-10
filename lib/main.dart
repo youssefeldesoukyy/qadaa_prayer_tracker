@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:qadaa_prayer_tracker/Views/sign_in_screen.dart';
 import 'package:qadaa_prayer_tracker/Views/qadaa_missed.dart';
+import 'package:qadaa_prayer_tracker/Views/sign_up_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -44,7 +46,7 @@ class _MyAppState extends State<MyApp> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: const QadaaMissed(),
+      home: const SignInScreen(),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:qadaa_prayer_tracker/Views/qadaa_missed.dart';
 import 'package:qadaa_prayer_tracker/Views/sign_up_screen.dart';
 
@@ -13,6 +14,37 @@ class _SignInScreenState extends State<SignInScreen> {
   final _emailOrPhoneController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  Future<void> _signIn() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await _auth.signInWithEmailAndPassword(
+        email: _emailOrPhoneController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const QadaaMissed()),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        _errorMessage = e.message ?? "Login failed. Please try again.";
+      });
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +92,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 TextField(
                   controller: _emailOrPhoneController,
                   decoration: InputDecoration(
-                    labelText: "Email or Phone Number",
+                    labelText: "Email",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -92,14 +124,20 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
                 const SizedBox(height: 24),
 
+                // Error Message
+                if (_errorMessage != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Text(
+                      _errorMessage!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ),
+
                 // Sign In button
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const QadaaMissed()),
-                    );
-                  },
+                  onPressed: _isLoading ? null : _signIn,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2563EB),
                     foregroundColor: Colors.white,
@@ -108,11 +146,21 @@ class _SignInScreenState extends State<SignInScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
+                  child: _isLoading
+                      ? const SizedBox(
+                    height: 22,
+                    width: 22,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                      : const Text(
                     "Sign In",
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
+
                 const SizedBox(height: 16),
 
                 // Divider
@@ -122,7 +170,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8),
                       child:
-                          Text("or", style: TextStyle(color: Colors.black54)),
+                      Text("or", style: TextStyle(color: Colors.black54)),
                     ),
                     Expanded(child: Divider(color: Colors.black26)),
                   ],
@@ -132,7 +180,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 // Login with Google
                 OutlinedButton.icon(
                   onPressed: () {
-                    // TODO: Google login logic
+                    // TODO: Implement Google Sign-In
                   },
                   icon: const Icon(Icons.account_circle_outlined, size: 22),
                   label: const Text(
@@ -153,7 +201,9 @@ class _SignInScreenState extends State<SignInScreen> {
 
                 // Forgot password
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    // TODO: Forgot password logic
+                  },
                   child: const Text(
                     "Forgot Password?",
                     style: TextStyle(color: Color(0xFF2563EB)),

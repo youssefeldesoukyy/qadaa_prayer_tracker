@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "578896216985",
+    "project_id": "qadaatrackerapp-75e01",
+    "storage_bucket": "qadaatrackerapp-75e01.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:578896216985:android:fe98021377d76ae59c4908",
+        "android_client_info": {
+          "package_name": "com.example.qadaa_prayer_tracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4C1OzohJ67iabQjvkcNF5DHSQWhtOrFo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

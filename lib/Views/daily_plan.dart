@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'Dashboard/home_dashboard.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class DailyPlan extends StatefulWidget {
   final DailyTotals totals;
@@ -55,7 +57,7 @@ class _DailyPlanState extends State<DailyPlan> {
 
   int _int(TextEditingController c) => int.tryParse(c.text.trim()) ?? 0;
 
-  void _saveAndGo() {
+  Future<void> _saveAndGo() async {
     final loc = AppLocalizations.of(context)!;
 
     final perDay = {
@@ -66,7 +68,6 @@ class _DailyPlanState extends State<DailyPlan> {
       'isha': _int(_ishaPerDay),
     };
 
-    // Validation (optional)
     final isAllZero = perDay.values.every((v) => v == 0);
     if (isAllZero) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -74,6 +75,35 @@ class _DailyPlanState extends State<DailyPlan> {
       );
       return;
     }
+
+    // ✅ Validate that entered numbers are not greater than remaining
+    final remaining = {
+      'fajr': widget.totals.fajr,
+      'dhuhr': widget.totals.dhuhr,
+      'asr': widget.totals.asr,
+      'maghrib': widget.totals.maghrib,
+      'isha': widget.totals.isha,
+    };
+
+    for (final entry in perDay.entries) {
+      final prayer = entry.key;
+      final entered = entry.value;
+      final maxAllowed = remaining[prayer] ?? 0;
+
+      if (entered > maxAllowed) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'The number for ${prayer[0].toUpperCase()}${prayer.substring(1)} must be lower than $maxAllowed',
+            ),
+          ),
+        );
+        return; // stop here, don’t continue saving
+      }
+    }
+
+    // 🔥 Save to Firestore
+    await _saveDailyPlanToFirestore(perDay);
 
     if (widget.fromSettings) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -90,6 +120,24 @@ class _DailyPlanState extends State<DailyPlan> {
           ),
         ),
       );
+    }
+  }
+
+  Future<void> _saveDailyPlanToFirestore(Map<String, int> dailyPlan) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final firestore = FirebaseFirestore.instance;
+
+    try {
+      await firestore.collection('Users').doc(user.uid).update({
+        'prayerPlan.createdAt': FieldValue.serverTimestamp(),
+        'prayerPlan.dailyPlan': dailyPlan,
+      });
+
+      debugPrint('✅ Daily plan saved for ${user.email}');
+    } catch (e) {
+      debugPrint('❌ Error saving daily plan: $e');
     }
   }
 

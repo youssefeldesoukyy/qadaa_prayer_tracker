@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:qadaa_prayer_tracker/Views/qadaa_missed.dart';
 import 'package:qadaa_prayer_tracker/Views/sign_in_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -15,6 +19,83 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+
+  Future<void> _signUpUser() async {
+    final auth = FirebaseAuth.instance;
+    final firestore = FirebaseFirestore.instance;
+
+    // Basic validation
+    if (_firstNameController.text.isEmpty ||
+        _lastNameController.text.isEmpty ||
+        _phoneController.text.isEmpty ||
+        _emailController.text.isEmpty ||
+        _passwordController.text.isEmpty ||
+        _confirmPasswordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please fill all fields")),
+      );
+      return;
+    }
+
+    if (_passwordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Passwords do not match")),
+      );
+      return;
+    }
+
+    try {
+      // Create user in Firebase Auth
+      UserCredential userCredential = await auth.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      // Store extra user data in Firestore
+      await firestore.collection('Users').doc(userCredential.user!.uid).set({
+        'id': userCredential.user!.uid,
+        'firstName': _firstNameController.text.trim(),
+        'lastName': _lastNameController.text.trim(),
+        'mobileNumber': _phoneController.text.trim(),
+        'email': _emailController.text.trim(),
+        'createdAt': FieldValue.serverTimestamp(),
+        'prayerPlan': {
+          'createdAt': FieldValue.serverTimestamp(),
+          'dailyPlan': {},        // empty map — ready to be filled later
+          'missedPrayers': {},    // empty map — ready to be filled later
+        },
+      });
+
+      // Show success message and go to Sign In screen
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Account created successfully!')),
+      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const QadaaMissed()),
+      );
+    } on FirebaseAuthException catch (e) {
+      String error = "Something went wrong";
+
+      if (e.code == 'email-already-in-use') {
+        error = "This email is already in use.";
+      } else if (e.code == 'weak-password') {
+        error = "Password should be at least 6 characters.";
+      } else if (e.code == 'invalid-email') {
+        error = "Invalid email format.";
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error)),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -171,8 +252,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                 // Sign Up button
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
+                  onPressed: () async {
+                    await _signUpUser();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2563EB),

@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'package:qadaa_prayer_tracker/Views/daily_plan.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class QadaaMissed extends StatefulWidget {
   const QadaaMissed({super.key});
@@ -186,7 +188,7 @@ class _QadaaMissedState extends State<QadaaMissed> {
     );
   }
 
-  void _onCreatePlanPressed() {
+  Future<void> _onCreatePlanPressed() async {
     final loc = AppLocalizations.of(context)!;
     late DailyTotals totals;
 
@@ -227,9 +229,39 @@ class _QadaaMissedState extends State<QadaaMissed> {
       );
     }
 
+    // 🔥 Save missed prayers to Firestore
+    await _saveMissedPrayersToFirestore(totals);
+
+    // Then navigate to DailyPlan screen
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => DailyPlan(totals: totals)),
     );
+  }
+
+  Future<void> _saveMissedPrayersToFirestore(DailyTotals totals) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final firestore = FirebaseFirestore.instance;
+
+    final missedMap = {
+      'fajr': totals.fajr,
+      'dhuhr': totals.dhuhr,
+      'asr': totals.asr,
+      'maghrib': totals.maghrib,
+      'isha': totals.isha,
+    };
+
+    try {
+      await firestore.collection('Users').doc(user.uid).update({
+        'prayerPlan.createdAt': FieldValue.serverTimestamp(),
+        'prayerPlan.missedPrayers': missedMap,
+      });
+
+      debugPrint('✅ Missed prayers saved for ${user.email}');
+    } catch (e) {
+      debugPrint('❌ Error saving missed prayers: $e');
+    }
   }
 }

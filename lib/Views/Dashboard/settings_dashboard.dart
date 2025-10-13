@@ -4,6 +4,8 @@ import 'package:qadaa_prayer_tracker/main.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'package:qadaa_prayer_tracker/Views/daily_plan.dart';
 import 'package:qadaa_prayer_tracker/Views/qadaa_missed.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SettingsDashboard extends StatefulWidget {
   final DailyTotals initial;
@@ -27,9 +29,47 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
   int get _totalCompleted => widget.initial.sum - widget.remaining.sum;
   int get _totalRemaining => widget.remaining.sum;
 
-  // -------------------
+  // -------------------------------------------------
+  // FIRESTORE RESET FUNCTION
+  // -------------------------------------------------
+  Future<void> _resetFirestoreData() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final userId = user.uid;
+      final firestore = FirebaseFirestore.instance;
+      final userRef = firestore.collection('Users').doc(userId);
+
+      // ✅ Reset prayerPlan fields + clear logs
+      await userRef.update({
+        // Reset missed prayers
+        'prayerPlan.missedPrayers.fajr': 0,
+        'prayerPlan.missedPrayers.dhuhr': 0,
+        'prayerPlan.missedPrayers.asr': 0,
+        'prayerPlan.missedPrayers.maghrib': 0,
+        'prayerPlan.missedPrayers.isha': 0,
+
+        // Reset daily plan
+        'prayerPlan.dailyPlan.fajr': 0,
+        'prayerPlan.dailyPlan.dhuhr': 0,
+        'prayerPlan.dailyPlan.asr': 0,
+        'prayerPlan.dailyPlan.maghrib': 0,
+        'prayerPlan.dailyPlan.isha': 0,
+
+        // Clear logs (outside prayerPlan)
+        'logs': {},
+      });
+
+      debugPrint('✅ Firestore prayerPlan + logs reset successfully for user: $userId');
+    } catch (e) {
+      debugPrint('❌ Error resetting Firestore data: $e');
+    }
+  }
+
+  // -------------------------------------------------
   // ACTIONS
-  // -------------------
+  // -------------------------------------------------
 
   void _editDailyPlan() async {
     final updatedPlan = await Navigator.push<Map<String, int>>(
@@ -52,6 +92,7 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
 
   void _resetAllData() {
     final loc = AppLocalizations.of(context)!;
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -67,16 +108,23 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const QadaaMissed()),
-                    (route) => false,
-              );
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(loc.allDataReset)),
-              );
+
+              // 🔥 Reset Firestore data
+              await _resetFirestoreData();
+
+              if (context.mounted) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const QadaaMissed()),
+                      (route) => false,
+                );
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(loc.allDataReset)),
+                );
+              }
             },
             child: Text(loc.confirmReset),
           ),
@@ -85,9 +133,9 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
     );
   }
 
-  // -------------------
+  // -------------------------------------------------
   // MAIN BUILD
-  // -------------------
+  // -------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
@@ -123,9 +171,9 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
     );
   }
 
-  // -------------------
+  // -------------------------------------------------
   // UI SECTIONS
-  // -------------------
+  // -------------------------------------------------
 
   Widget _statusCard(AppLocalizations loc) {
     return _card(
@@ -299,9 +347,9 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
     );
   }
 
-  // -------------------
+  // -------------------------------------------------
   // REUSABLE WIDGETS
-  // -------------------
+  // -------------------------------------------------
 
   Widget _card({required Widget child}) {
     return Container(

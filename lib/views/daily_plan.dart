@@ -141,6 +141,7 @@ class _DailyPlanState extends State<DailyPlan> {
     }
   }
 
+  // 🔹 TextField row builder with blue theme
   Widget _rowField(String label, int remaining, TextEditingController c) {
     final loc = AppLocalizations.of(context)!;
     return Padding(
@@ -167,6 +168,7 @@ class _DailyPlanState extends State<DailyPlan> {
           const SizedBox(height: 8),
           TextField(
             controller: c,
+            cursorColor: const Color(0xFF2563EB), // 🟦 cursor
             keyboardType: TextInputType.number,
             inputFormatters: _digitsOnly,
             decoration: InputDecoration(
@@ -175,8 +177,16 @@ class _DailyPlanState extends State<DailyPlan> {
               floatingLabelBehavior: FloatingLabelBehavior.always,
               contentPadding:
               const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-              border: OutlineInputBorder(
+              enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.grey.shade400),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(
+                  color: Color(0xFF2563EB),
+                  width: 2,
+                ),
               ),
             ),
           ),
@@ -204,6 +214,13 @@ class _DailyPlanState extends State<DailyPlan> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.grey.shade300),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -221,11 +238,13 @@ class _DailyPlanState extends State<DailyPlan> {
                     style: const TextStyle(color: Colors.black54),
                   ),
                   const SizedBox(height: 24),
+
                   _rowField(loc.fajr, t.fajr, _fajrPerDay),
                   _rowField(loc.dhuhr, t.dhuhr, _dhuhrPerDay),
                   _rowField(loc.asr, t.asr, _asrPerDay),
                   _rowField(loc.maghrib, t.maghrib, _maghribPerDay),
                   _rowField(loc.isha, t.isha, _ishaPerDay),
+
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: _saveAndGo,

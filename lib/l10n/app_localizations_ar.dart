@@ -265,4 +265,111 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get perDay => 'يوميًا';
+
+  @override
+  String get logout => 'تسجيل الخروج';
+
+  @override
+  String get logoutTitle => 'تأكيد تسجيل الخروج';
+
+  @override
+  String get logoutWarning => 'هل أنت متأكد أنك تريد تسجيل الخروج من الحساب؟';
+
+  @override
+  String get loggedOut => 'تم تسجيل الخروج بنجاح';
+
+  @override
+  String get confirm => 'تأكيد';
+
+  @override
+  String get signInSubtitle => 'مرحباً بعودتك! يرجى تسجيل الدخول للمتابعة.';
+
+  @override
+  String get emailLabel => 'البريد الإلكتروني';
+
+  @override
+  String get passwordLabel => 'كلمة المرور';
+
+  @override
+  String get signIn => 'تسجيل الدخول';
+
+  @override
+  String get or => 'أو';
+
+  @override
+  String get forgotPassword => 'هل نسيت كلمة المرور؟';
+
+  @override
+  String get noAccount => 'ليس لديك حساب؟';
+
+  @override
+  String get signUp => 'إنشاء حساب';
+
+  @override
+  String get signUpSubtitle => 'أنشئ حسابك لبدء تتبع صلواتك.';
+
+  @override
+  String get firstName => 'الاسم الأول';
+
+  @override
+  String get lastName => 'اسم العائلة';
+
+  @override
+  String get phoneNumber => 'رقم الهاتف';
+
+  @override
+  String get confirmPassword => 'تأكيد كلمة المرور';
+
+  @override
+  String get fillAllFields => 'يرجى ملء جميع الحقول';
+
+  @override
+  String get passwordsDoNotMatch => 'كلمتا المرور غير متطابقتين';
+
+  @override
+  String get accountCreated => 'تم إنشاء الحساب بنجاح!';
+
+  @override
+  String get somethingWentWrong => 'حدث خطأ ما';
+
+  @override
+  String get emailInUse => 'هذا البريد الإلكتروني مستخدم بالفعل.';
+
+  @override
+  String get weakPassword => 'يجب أن تتكون كلمة المرور من 6 أحرف على الأقل.';
+
+  @override
+  String get alreadyHaveAccount => 'هل لديك حساب بالفعل؟';
+
+  @override
+  String get invalidCredentials =>
+      'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
+
+  @override
+  String get invalidEmail => 'تنسيق البريد الإلكتروني غير صالح.';
+
+  @override
+  String get accountDisabled => 'تم تعطيل هذا الحساب.';
+
+  @override
+  String get loginFailed => 'فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get resetPasswordTitle => 'إعادة تعيين كلمة المرور';
+
+  @override
+  String get enterEmailWarning => 'يرجى إدخال بريدك الإلكتروني.';
+
+  @override
+  String get resetEmailSent =>
+      'تم إرسال رسالة لإعادة تعيين كلمة المرور إلى بريدك الإلكتروني.';
+
+  @override
+  String get resetFailed => 'فشل في إرسال رسالة إعادة التعيين. حاول مرة أخرى.';
+
+  @override
+  String get emailNotFound => 'لم يتم العثور على حساب بهذا البريد الإلكتروني.';
+
+  @override
+  String get send => 'إرسال';
 }

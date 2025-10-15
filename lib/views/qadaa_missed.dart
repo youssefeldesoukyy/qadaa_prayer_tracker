@@ -62,6 +62,13 @@ class _QadaaMissedState extends State<QadaaMissed> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: Colors.grey.shade200),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -161,6 +168,7 @@ class _QadaaMissedState extends State<QadaaMissed> {
     );
   }
 
+  // 🔹 Unified text field style (blue border, blue cursor)
   Widget _textField(String label, TextEditingController controller) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -168,20 +176,24 @@ class _QadaaMissedState extends State<QadaaMissed> {
         controller: controller,
         keyboardType: TextInputType.number,
         inputFormatters: _digitsOnly,
+        cursorColor: const Color(0xFF2563EB),
         decoration: InputDecoration(
           labelText: label,
+          labelStyle: const TextStyle(color: Colors.black54),
+          floatingLabelStyle: const TextStyle(color: Color(0xFF2563EB)),
           hintText: '0',
           hintStyle: const TextStyle(color: Colors.grey),
           floatingLabelBehavior: FloatingLabelBehavior.always,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          contentPadding:
+          const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Colors.deepPurple),
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.grey.shade400),
           ),
-          focusedBorder: const OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.deepPurple, width: 2),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide:
+            const BorderSide(color: Color(0xFF2563EB), width: 2),
           ),
         ),
       ),

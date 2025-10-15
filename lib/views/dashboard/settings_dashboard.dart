@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qadaa_prayer_tracker/Views/sign_in_screen.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/main.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
@@ -101,7 +102,10 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(loc.cancel),
+            child: Text(loc.cancel,
+            style: const TextStyle(
+              color: Colors.black
+            ),),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -132,6 +136,48 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
       ),
     );
   }
+
+  Future<void> _logout() async {
+    final loc = AppLocalizations.of(context)!;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(loc.logoutTitle),
+        content: Text(loc.logoutWarning),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(loc.cancel, style: const TextStyle(color: Colors.black),),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await FirebaseAuth.instance.signOut();
+
+              if (context.mounted) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SignInScreen()),
+                      (route) => false,
+                );
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(loc.loggedOut)),
+                );
+              }
+            },
+            child: Text(loc.confirm),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   // -------------------------------------------------
   // MAIN BUILD
@@ -164,6 +210,25 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
             _dangerZoneCard(loc),
 
             const SizedBox(height: 32),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _logout,
+                icon: const Icon(Icons.logout, size: 18),
+                label: Text(loc.logout),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey.shade800,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+
             _footer(loc),
           ],
         ),
@@ -191,7 +256,7 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
             ],
           ),
           const SizedBox(height: 16),
-          _statusRow('${loc.totalMissed}', '${widget.initial.sum} ${loc.prayers}', Colors.black),
+          _statusRow(loc.totalMissed, '${widget.initial.sum} ${loc.prayers}', Colors.black),
           const SizedBox(height: 8),
           _statusRow(loc.completed, '$_totalCompleted ${loc.prayers}', Colors.green),
           const SizedBox(height: 8),

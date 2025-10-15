@@ -55,6 +55,18 @@ class _HomeDashboardState extends State<HomeDashboard> {
         final missed = Map<String, dynamic>.from(prayerPlan['missedPrayers'] ?? {});
         final logs = Map<String, dynamic>.from(data['logs'] ?? {});
 
+        // calculate total logged per prayer
+        int loggedFajr = 0, loggedDhuhr = 0, loggedAsr = 0, loggedMaghrib = 0, loggedIsha = 0;
+
+        for (var entry in logs.values) {
+          final day = Map<String, int>.from(entry);
+          loggedFajr += (day['fajr'] ?? 0);
+          loggedDhuhr += (day['dhuhr'] ?? 0);
+          loggedAsr += (day['asr'] ?? 0);
+          loggedMaghrib += (day['maghrib'] ?? 0);
+          loggedIsha += (day['isha'] ?? 0);
+        }
+
         setState(() {
           _initial = DailyTotals(
             fajr: missed['fajr'] ?? 0,
@@ -63,19 +75,22 @@ class _HomeDashboardState extends State<HomeDashboard> {
             maghrib: missed['maghrib'] ?? 0,
             isha: missed['isha'] ?? 0,
           );
-          _remaining = _initial;
-          _totalCompleted = logs.values.fold<num>(0, (sum, entry) {
-            final day = Map<String, dynamic>.from(entry);
-            return sum +
-                (day['fajr'] ?? 0) +
-                (day['dhuhr'] ?? 0) +
-                (day['asr'] ?? 0) +
-                (day['maghrib'] ?? 0) +
-                (day['isha'] ?? 0);
-          }).toInt();
+
+          _remaining = DailyTotals(
+            fajr: (_initial.fajr - loggedFajr).clamp(0, _initial.fajr),
+            dhuhr: (_initial.dhuhr - loggedDhuhr).clamp(0, _initial.dhuhr),
+            asr: (_initial.asr - loggedAsr).clamp(0, _initial.asr),
+            maghrib: (_initial.maghrib - loggedMaghrib).clamp(0, _initial.maghrib),
+            isha: (_initial.isha - loggedIsha).clamp(0, _initial.isha),
+          );
+
+          _totalCompleted =
+              loggedFajr + loggedDhuhr + loggedAsr + loggedMaghrib + loggedIsha;
+
           _isLoading = false;
         });
-        debugPrint('✅ Loaded user data from Firestore.');
+
+        debugPrint('✅ Loaded and recalculated user data from Firestore.');
       }
     } catch (e) {
       debugPrint('❌ Error loading user data: $e');
@@ -152,7 +167,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
 
     if (logged) {
       await _logPrayerToFirestore(prayerKey);
-      await _decrementMissedPrayerInFirestore(prayerKey);
+      // ⛔ Removed: await _decrementMissedPrayerInFirestore(prayerKey);
     }
   }
 
@@ -190,39 +205,12 @@ class _HomeDashboardState extends State<HomeDashboard> {
     }
   }
 
-  Future<void> _decrementMissedPrayerInFirestore(String prayerKey) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    final firestore = FirebaseFirestore.instance;
-    final userRef = firestore.collection('Users').doc(user.uid);
-
-    try {
-      final userDoc = await userRef.get();
-      final data = userDoc.data() ?? {};
-
-      final prayerPlan = Map<String, dynamic>.from(data['prayerPlan'] ?? {});
-      final missed = Map<String, dynamic>.from(prayerPlan['missedPrayers'] ?? {});
-
-      if (missed.containsKey(prayerKey) && missed[prayerKey] > 0) {
-        missed[prayerKey] = missed[prayerKey] - 1;
-      }
-
-      await userRef.update({'prayerPlan.missedPrayers': missed});
-      debugPrint('📉 Decremented missed $prayerKey in Firestore');
-    } catch (e) {
-      debugPrint('❌ Error updating missed prayers: $e');
-    }
-  }
-
   // -------------------
   // CENTER NOTICE POPUP
   // -------------------
   void _showCenteredNotice({
     required String title,
     required String subtitle,
-    String? actionLabel,
-    VoidCallback? onAction,
   }) {
     final loc = AppLocalizations.of(context)!;
     showGeneralDialog(

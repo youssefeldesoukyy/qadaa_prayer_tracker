@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class StatsDashboard extends StatelessWidget {
+class StatsDashboard extends StatefulWidget {
   final DailyTotals initial;
   final DailyTotals remaining;
   final Map<String, int>? perDay;
@@ -15,41 +17,87 @@ class StatsDashboard extends StatelessWidget {
   });
 
   @override
+  State<StatsDashboard> createState() => _StatsDashboardState();
+}
+
+class _StatsDashboardState extends State<StatsDashboard> {
+  bool _isGuest = false;
+  Map<String, dynamic> _guestLogs = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGuestLogsIfNeeded();
+  }
+
+  Future<void> _loadGuestLogsIfNeeded() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isGuest = prefs.getBool('isGuest') ?? false;
+
+    if (_isGuest) {
+      final logsString = prefs.getString('guestLogs');
+      if (logsString != null) {
+        _guestLogs = jsonDecode(logsString);
+      }
+      setState(() {});
+    }
+  }
+
+  int _guestCompleted(String key) {
+    int total = 0;
+    for (var entry in _guestLogs.values) {
+      final day = Map<String, int>.from(entry);
+      total += (day[key] ?? 0);
+    }
+    return total;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
 
     // -------------------
     // DATA CALCULATIONS
     // -------------------
-    final fajrCompleted = (initial.fajr - remaining.fajr).clamp(0, initial.fajr);
-    final dhuhrCompleted = (initial.dhuhr - remaining.dhuhr).clamp(0, initial.dhuhr);
-    final asrCompleted = (initial.asr - remaining.asr).clamp(0, initial.asr);
-    final maghribCompleted =
-    (initial.maghrib - remaining.maghrib).clamp(0, initial.maghrib);
-    final ishaCompleted = (initial.isha - remaining.isha).clamp(0, initial.isha);
+    final initial = widget.initial;
+    final remaining = widget.remaining;
 
-    final totalCompleted =
-        fajrCompleted + dhuhrCompleted + asrCompleted + maghribCompleted + ishaCompleted;
+    // For guests, calculate completed counts from logs
+    final fajrCompleted = _isGuest
+        ? _guestCompleted('fajr')
+        : (initial.fajr - remaining.fajr).clamp(0, initial.fajr);
+    final dhuhrCompleted = _isGuest
+        ? _guestCompleted('dhuhr')
+        : (initial.dhuhr - remaining.dhuhr).clamp(0, initial.dhuhr);
+    final asrCompleted = _isGuest
+        ? _guestCompleted('asr')
+        : (initial.asr - remaining.asr).clamp(0, initial.asr);
+    final maghribCompleted = _isGuest
+        ? _guestCompleted('maghrib')
+        : (initial.maghrib - remaining.maghrib).clamp(0, initial.maghrib);
+    final ishaCompleted = _isGuest
+        ? _guestCompleted('isha')
+        : (initial.isha - remaining.isha).clamp(0, initial.isha);
+
+    final totalCompleted = fajrCompleted +
+        dhuhrCompleted +
+        asrCompleted +
+        maghribCompleted +
+        ishaCompleted;
     final totalRemaining = remaining.sum;
 
-    final perDayTotals = perDay ?? const {};
+    final perDayTotals = widget.perDay ?? const {};
     final perDaySum = (perDayTotals['fajr'] ?? 0) +
         (perDayTotals['dhuhr'] ?? 0) +
         (perDayTotals['asr'] ?? 0) +
         (perDayTotals['maghrib'] ?? 0) +
         (perDayTotals['isha'] ?? 0);
 
-    final daysRemaining = perDaySum > 0 ? (totalRemaining / perDaySum).ceil() : null;
+    final daysRemaining =
+    perDaySum > 0 ? (totalRemaining / perDaySum).ceil() : null;
     final estimatedFinishDate = daysRemaining != null
         ? DateTime.now().add(Duration(days: daysRemaining))
         : null;
-
-    final now = DateTime.now();
-    final weekdayIndexFromMonday = (now.weekday + 6) % 7 + 1; // Mon=1..Sun=7
-    final expectedSoFarThisWeek = perDaySum * weekdayIndexFromMonday;
-    final completedThisWeek =
-    perDaySum == 0 ? 0 : totalCompleted.clamp(0, expectedSoFarThisWeek);
-    final currentStreak = totalCompleted > 0 ? 1 : 0;
 
     String percentStr(int completed, int total) {
       if (total <= 0) return '0%';
@@ -86,61 +134,34 @@ class StatsDashboard extends StatelessWidget {
           children: [
             Text(
               loc.statistics,
-              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+              style:
+              const TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 4),
-            Text(loc.totalProgress, style: const TextStyle(color: Colors.black54)),
+            Text(loc.totalProgress,
+                style: const TextStyle(color: Colors.black54)),
             const SizedBox(height: 20),
 
-            // KPI CARDS
             Row(
               children: [
                 _kpiCard(
                   context,
-                  value: '$currentStreak',
-                  label: loc.currentStreak,
+                  value: '$totalCompleted',
+                  label: loc.totalCompleted,
                   icon: Icons.trending_up,
                 ),
                 const SizedBox(width: 16),
                 _kpiCard(
                   context,
-                  value: '$completedThisWeek',
-                  label: loc.completedThisWeek,
-                  icon: Icons.adjust_rounded,
-                  iconColor: const Color(0xFF16A34A),
+                  value: '$totalRemaining',
+                  label: loc.remainingPrayers,
+                  icon: Icons.access_time,
+                  iconColor: const Color(0xFF2563EB),
                 ),
               ],
             ),
             const SizedBox(height: 20),
 
-            // WEEKLY PROGRESS
-            _sectionCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    loc.weeklyProgress,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 120),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(loc.thu, style: const TextStyle(color: Colors.black54)),
-                      Text(loc.fri, style: const TextStyle(color: Colors.black54)),
-                      Text(loc.sat, style: const TextStyle(color: Colors.black54)),
-                      Text(loc.sun, style: const TextStyle(color: Colors.black54)),
-                      Text(loc.mon, style: const TextStyle(color: Colors.black54)),
-                      Text(loc.tue, style: const TextStyle(color: Colors.black54)),
-                      Text(loc.wed, style: const TextStyle(color: Colors.black54)),
-                    ],
-                  )
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // ESTIMATED FINISH
             _gradientInfoCard(
               title: loc.estimatedFinishDate,
               value: estimatedFinishDate != null
@@ -152,14 +173,14 @@ class StatsDashboard extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // BREAKDOWN
             _sectionCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     loc.prayerBreakdown,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 16),
                   _breakdownRow(
@@ -231,13 +252,9 @@ class StatsDashboard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
+                Text(value,
+                    style: const TextStyle(
+                        fontSize: 28, fontWeight: FontWeight.w800)),
                 Icon(icon, color: iconColor),
               ],
             ),
@@ -249,81 +266,69 @@ class StatsDashboard extends StatelessWidget {
     );
   }
 
-  Widget _sectionCard({required Widget child}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: child,
-    );
-  }
+  Widget _sectionCard({required Widget child}) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: Colors.grey.shade300),
+    ),
+    child: child,
+  );
 
   Widget _gradientInfoCard({
     required String title,
     required String value,
     required String subtitle,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade300),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFEFF5FF), Color(0xFFFFFFFF)],
+  }) =>
+      Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade300),
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFEFF5FF), Color(0xFFFFFFFF)],
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: const Color(0xFFDBEAFE),
-              borderRadius: BorderRadius.circular(10),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: const Color(0xFFDBEAFE),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.calendar_today_rounded,
+                  color: Color(0xFF2563EB), size: 20),
             ),
-            child: const Icon(
-              Icons.calendar_today_rounded,
-              color: Color(0xFF2563EB),
-              size: 20,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w700, color: Colors.black87)),
+                  const SizedBox(height: 6),
+                  Text(value,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                          color: Color(0xFF2563EB))),
+                  const SizedBox(height: 6),
+                  Text(subtitle,
+                      style: const TextStyle(color: Colors.black54)),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16,
-                    color: Color(0xFF2563EB),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(subtitle, style: const TextStyle(color: Colors.black54)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
 
   Widget _breakdownRow(
       BuildContext context, {
@@ -331,33 +336,25 @@ class StatsDashboard extends StatelessWidget {
         required String label,
         required String count,
         required String percent,
-      }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          Icon(icon, color: const Color(0xFF2563EB)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-              ),
+      }) =>
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          children: [
+            Icon(icon, color: const Color(0xFF2563EB)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(label,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 16)),
             ),
-          ),
-          Text(count, style: const TextStyle(color: Colors.black54)),
-          const SizedBox(width: 12),
-          Text(
-            percent,
-            style: const TextStyle(
-              color: Color(0xFF2563EB),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+            Text(count, style: const TextStyle(color: Colors.black54)),
+            const SizedBox(width: 12),
+            Text(percent,
+                style: const TextStyle(
+                    color: Color(0xFF2563EB),
+                    fontWeight: FontWeight.w700)),
+          ],
+        ),
+      );
 }

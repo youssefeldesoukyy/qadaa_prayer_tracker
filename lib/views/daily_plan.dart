@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'Dashboard/home_dashboard.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -68,6 +70,7 @@ class _DailyPlanState extends State<DailyPlan> {
       'isha': _int(_ishaPerDay),
     };
 
+    // 🔹 Validation
     final isAllZero = perDay.values.every((v) => v == 0);
     if (isAllZero) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -76,7 +79,7 @@ class _DailyPlanState extends State<DailyPlan> {
       return;
     }
 
-    // ✅ Validate that entered numbers are not greater than remaining
+    // 🔹 Check if within allowed limits
     final remaining = {
       'fajr': widget.totals.fajr,
       'dhuhr': widget.totals.dhuhr,
@@ -86,62 +89,107 @@ class _DailyPlanState extends State<DailyPlan> {
     };
 
     for (final entry in perDay.entries) {
-      final prayer = entry.key;
-      final entered = entry.value;
-      final maxAllowed = remaining[prayer] ?? 0;
-
-      if (entered > maxAllowed) {
+      final key = entry.key;
+      final value = entry.value;
+      final maxAllowed = remaining[key] ?? 0;
+      if (value > maxAllowed) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'The number for ${prayer[0].toUpperCase()}${prayer.substring(1)} must be lower than $maxAllowed',
+              "${key[0].toUpperCase()}${key.substring(1)} can't exceed $maxAllowed",
             ),
           ),
         );
-        return; // stop here, don’t continue saving
+        return;
       }
     }
 
-    // 🔥 Save to Firestore
+    // 🔹 Determine mode (guest or user)
+    final prefs = await SharedPreferences.getInstance();
+    final isGuest = prefs.getBool('isGuest') ?? false;
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (isGuest || user == null) {
+      // 🟡 Guest Mode → Save locally
+      await _saveDailyPlanLocally(perDay);
+
+      if (widget.fromSettings) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(loc.dailyPlanUpdated)),
+          );
+          Navigator.pop(context, perDay);
+        }
+      } else {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => HomeDashboard(
+                initial: widget.totals,
+                perDay: perDay,
+              ),
+            ),
+          );
+        }
+      }
+      return;
+    }
+
+    // 🔵 Logged-in user → Save to Firestore
     await _saveDailyPlanToFirestore(perDay);
 
     if (widget.fromSettings) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.dailyPlanUpdated)),
-      );
-      Navigator.pop(context, perDay);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(loc.dailyPlanUpdated)),
+        );
+        Navigator.pop(context, perDay);
+      }
     } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => HomeDashboard(
-            initial: widget.totals,
-            perDay: perDay,
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                HomeDashboard(initial: widget.totals, perDay: perDay),
           ),
-        ),
-      );
+        );
+      }
     }
+  }
+
+  /// 🔹 Save guest plan locally (JSON-based, consistent with main.dart)
+  Future<void> _saveDailyPlanLocally(Map<String, int> dailyPlan) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Save per-day plan in one JSON blob
+    await prefs.setString('guestPerDay', jsonEncode(dailyPlan));
+
+    // Mark guest as no longer first-time
+    await prefs.setBool('isGuestFirstTime', false);
+
+    debugPrint('✅ Daily plan saved locally for guest user');
   }
 
   Future<void> _saveDailyPlanToFirestore(Map<String, int> dailyPlan) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    final firestore = FirebaseFirestore.instance;
-
     try {
-      await firestore.collection('Users').doc(user.uid).update({
+      await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(user.uid)
+          .update({
         'prayerPlan.createdAt': FieldValue.serverTimestamp(),
         'prayerPlan.dailyPlan': dailyPlan,
       });
-
       debugPrint('✅ Daily plan saved for ${user.email}');
     } catch (e) {
       debugPrint('❌ Error saving daily plan: $e');
     }
   }
 
-  // 🔹 TextField row builder with blue theme
   Widget _rowField(String label, int remaining, TextEditingController c) {
     final loc = AppLocalizations.of(context)!;
     return Padding(
@@ -151,13 +199,9 @@ class _DailyPlanState extends State<DailyPlan> {
         children: [
           Row(
             children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
-              ),
+              Text(label,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 16)),
               const Spacer(),
               Text(
                 '$remaining ${loc.remaining}',
@@ -168,13 +212,12 @@ class _DailyPlanState extends State<DailyPlan> {
           const SizedBox(height: 8),
           TextField(
             controller: c,
-            cursorColor: const Color(0xFF2563EB), // 🟦 cursor
             keyboardType: TextInputType.number,
             inputFormatters: _digitsOnly,
+            cursorColor: const Color(0xFF2563EB),
             decoration: InputDecoration(
               hintText: '0',
               hintStyle: const TextStyle(color: Colors.grey),
-              floatingLabelBehavior: FloatingLabelBehavior.always,
               contentPadding:
               const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
               enabledBorder: OutlineInputBorder(
@@ -238,13 +281,11 @@ class _DailyPlanState extends State<DailyPlan> {
                     style: const TextStyle(color: Colors.black54),
                   ),
                   const SizedBox(height: 24),
-
                   _rowField(loc.fajr, t.fajr, _fajrPerDay),
                   _rowField(loc.dhuhr, t.dhuhr, _dhuhrPerDay),
                   _rowField(loc.asr, t.asr, _asrPerDay),
                   _rowField(loc.maghrib, t.maghrib, _maghribPerDay),
                   _rowField(loc.isha, t.isha, _ishaPerDay),
-
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: _saveAndGo,

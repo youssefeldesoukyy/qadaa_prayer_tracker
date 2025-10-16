@@ -29,18 +29,24 @@ class DailyTotals {
   }
 
   Map<String, int> toMap() => {
-        'fajr': fajr,
-        'dhuhr': dhuhr,
-        'asr': asr,
-        'maghrib': maghrib,
-        'isha': isha,
-      };
+    'fajr': fajr,
+    'dhuhr': dhuhr,
+    'asr': asr,
+    'maghrib': maghrib,
+    'isha': isha,
+  };
 
   factory DailyTotals.fromMap(Map<String, dynamic> m) => DailyTotals(
-        fajr: (m['fajr'] as int?) ?? 0,
-        dhuhr: (m['dhuhr'] as int?) ?? 0,
-        asr: (m['asr'] as int?) ?? 0,
-        maghrib: (m['maghrib'] as int?) ?? 0,
-        isha: (m['isha'] as int?) ?? 0,
-      );
+    fajr: (m['fajr'] as int?) ?? 0,
+    dhuhr: (m['dhuhr'] as int?) ?? 0,
+    asr: (m['asr'] as int?) ?? 0,
+    maghrib: (m['maghrib'] as int?) ?? 0,
+    isha: (m['isha'] as int?) ?? 0,
+  );
+
+  // ✅ Added for SharedPreferences JSON saving
+  Map<String, dynamic> toJson() => toMap();
+
+  factory DailyTotals.fromJson(Map<String, dynamic> json) =>
+      DailyTotals.fromMap(json);
 }

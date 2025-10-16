@@ -1,13 +1,18 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:qadaa_prayer_tracker/Views/Dashboard/home_dashboard.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'package:qadaa_prayer_tracker/Views/daily_plan.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class QadaaMissed extends StatefulWidget {
-  const QadaaMissed({super.key});
+  final bool fromGuest; // ✅ distinguish guest vs logged user
+
+  const QadaaMissed({super.key, this.fromGuest = false});
 
   @override
   State<QadaaMissed> createState() => _QadaaMissedState();
@@ -57,7 +62,7 @@ class _QadaaMissedState extends State<QadaaMissed> {
           padding: const EdgeInsets.all(16),
           child: Container(
             constraints: const BoxConstraints(maxWidth: 600),
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
@@ -120,27 +125,24 @@ class _QadaaMissedState extends State<QadaaMissed> {
   }
 
   Widget _buildModeSwitch(AppLocalizations loc) {
-    return SizedBox(
-      width: double.infinity,
-      child: SegmentedButton<QadaMode>(
-        segments: [
-          ButtonSegment<QadaMode>(
-            value: QadaMode.timePeriod,
-            label: Text(loc.timePeriod),
-          ),
-          ButtonSegment<QadaMode>(
-            value: QadaMode.manual,
-            label: Text(loc.manualEntry),
-          ),
-        ],
-        selected: {_mode},
-        onSelectionChanged: (s) => setState(() => _mode = s.first),
-        showSelectedIcon: false,
-        style: ButtonStyle(
-          minimumSize: WidgetStateProperty.all(const Size.fromHeight(48)),
-          shape: WidgetStateProperty.all(
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
+    return SegmentedButton<QadaMode>(
+      segments: [
+        ButtonSegment<QadaMode>(
+          value: QadaMode.timePeriod,
+          label: Text(loc.timePeriod),
+        ),
+        ButtonSegment<QadaMode>(
+          value: QadaMode.manual,
+          label: Text(loc.manualEntry),
+        ),
+      ],
+      selected: {_mode},
+      onSelectionChanged: (s) => setState(() => _mode = s.first),
+      showSelectedIcon: false,
+      style: ButtonStyle(
+        minimumSize: WidgetStateProperty.all(const Size.fromHeight(48)),
+        shape: WidgetStateProperty.all(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
     );
@@ -168,7 +170,6 @@ class _QadaaMissedState extends State<QadaaMissed> {
     );
   }
 
-  // 🔹 Unified text field style (blue border, blue cursor)
   Widget _textField(String label, TextEditingController controller) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -183,7 +184,6 @@ class _QadaaMissedState extends State<QadaaMissed> {
           floatingLabelStyle: const TextStyle(color: Color(0xFF2563EB)),
           hintText: '0',
           hintStyle: const TextStyle(color: Colors.grey),
-          floatingLabelBehavior: FloatingLabelBehavior.always,
           contentPadding:
           const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
           enabledBorder: OutlineInputBorder(
@@ -192,8 +192,7 @@ class _QadaaMissedState extends State<QadaaMissed> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide:
-            const BorderSide(color: Color(0xFF2563EB), width: 2),
+            borderSide: const BorderSide(color: Color(0xFF2563EB), width: 2),
           ),
         ),
       ),
@@ -208,7 +207,6 @@ class _QadaaMissedState extends State<QadaaMissed> {
       final y = int.tryParse(_years.text) ?? 0;
       final m = int.tryParse(_months.text) ?? 0;
       final d = int.tryParse(_days.text) ?? 0;
-
       final totalDays = (y * 365) + (m * 30) + d;
 
       if (totalDays == 0) {
@@ -232,43 +230,50 @@ class _QadaaMissedState extends State<QadaaMissed> {
       final m = int.tryParse(_maghrib.text) ?? 0;
       final i = int.tryParse(_isha.text) ?? 0;
 
-      totals = DailyTotals(
-        fajr: f,
-        dhuhr: d,
-        asr: a,
-        maghrib: m,
-        isha: i,
-      );
+      totals = DailyTotals(fajr: f, dhuhr: d, asr: a, maghrib: m, isha: i);
     }
 
-    // 🔥 Save missed prayers to Firestore
+    final prefs = await SharedPreferences.getInstance();
+    final isGuest = prefs.getBool('isGuest') ?? false;
+
+    if (isGuest || widget.fromGuest) {
+      // 🟡 Guest: Save JSON-based totals
+      await prefs.setString('guestTotals', jsonEncode(totals.toJson()));
+      await prefs.setBool('isGuestFirstTime', false);
+      await prefs.setBool('isGuest', true);
+
+      // 🚀 Go to DailyPlan
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => DailyPlan(totals: totals)),
+        );
+      }
+      return;
+    }
+
+    // 🔵 Logged-in user → save to Firestore
     await _saveMissedPrayersToFirestore(totals);
 
-    // Then navigate to DailyPlan screen
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => DailyPlan(totals: totals)),
-    );
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => DailyPlan(totals: totals)),
+      );
+    }
   }
 
   Future<void> _saveMissedPrayersToFirestore(DailyTotals totals) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    final firestore = FirebaseFirestore.instance;
-
-    final missedMap = {
-      'fajr': totals.fajr,
-      'dhuhr': totals.dhuhr,
-      'asr': totals.asr,
-      'maghrib': totals.maghrib,
-      'isha': totals.isha,
-    };
-
     try {
-      await firestore.collection('Users').doc(user.uid).update({
+      await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(user.uid)
+          .update({
         'prayerPlan.createdAt': FieldValue.serverTimestamp(),
-        'prayerPlan.missedPrayers': missedMap,
+        'prayerPlan.missedPrayers': totals.toMap(),
       });
 
       debugPrint('✅ Missed prayers saved for ${user.email}');

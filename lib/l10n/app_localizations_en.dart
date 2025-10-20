@@ -389,4 +389,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get continueAsGuest => 'Continue as Guest';
+
+  @override
+  String get editMissedPrayers => 'Edit Missed Prayers';
+
+  @override
+  String get editLogs => 'Edit Logged Prayers';
+
+  @override
+  String get saveChanges => 'Save Changes';
 }

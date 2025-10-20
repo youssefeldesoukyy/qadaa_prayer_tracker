@@ -387,4 +387,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get continueAsGuest => 'المتابعة كضيف';
+
+  @override
+  String get editMissedPrayers => 'تعديل الصلوات الفائتة';
+
+  @override
+  String get editLogs => 'تعديل الصلوات المنجزة';
+
+  @override
+  String get saveChanges => 'حفظ التغييرات';
 }

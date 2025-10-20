@@ -841,6 +841,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Continue as Guest'**
   String get continueAsGuest;
+
+  /// No description provided for @editMissedPrayers.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Missed Prayers'**
+  String get editMissedPrayers;
+
+  /// No description provided for @editLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Logged Prayers'**
+  String get editLogs;
+
+  /// No description provided for @saveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get saveChanges;
 }
 
 class _AppLocalizationsDelegate

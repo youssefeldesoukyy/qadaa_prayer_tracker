@@ -127,5 +127,9 @@
   "appleSignInFailed": "فشل تسجيل الدخول بآبل",
   "google": "جوجل",
   "apple": "آبل",
-  "continueAsGuest": "المتابعة كضيف"
+  "continueAsGuest": "المتابعة كضيف",
+  "editMissedPrayers": "تعديل الصلوات الفائتة",
+  "editLogs": "تعديل الصلوات المنجزة",
+  "saveChanges": "حفظ التغييرات"
+
 }

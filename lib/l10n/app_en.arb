@@ -128,5 +128,9 @@
   "appleSignInFailed": "Apple Sign-In failed",
   "google": "Google",
   "apple": "Apple",
-  "continueAsGuest": "Continue as Guest"
+  "continueAsGuest": "Continue as Guest",
+  "editMissedPrayers": "Edit Missed Prayers",
+  "editLogs": "Edit Logged Prayers",
+  "saveChanges": "Save Changes"
+
 }

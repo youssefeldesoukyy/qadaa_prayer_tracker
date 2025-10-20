@@ -37,67 +37,67 @@ class _StatsDashboardState extends State<StatsDashboard> {
     if (_isGuest) {
       final logsString = prefs.getString('guestLogs');
       if (logsString != null) {
-        _guestLogs = jsonDecode(logsString);
+        final decoded = jsonDecode(logsString);
+
+        if (decoded is Map) {
+          _guestLogs = Map<String, dynamic>.from(decoded);
+        } else {
+          // Handle corrupted or old data safely
+          _guestLogs = {
+            'fajr': 0,
+            'dhuhr': 0,
+            'asr': 0,
+            'maghrib': 0,
+            'isha': 0,
+          };
+        }
       }
       setState(() {});
     }
   }
 
+
   int _guestCompleted(String key) {
+    if (_guestLogs.isEmpty) return 0;
+
     int total = 0;
-    for (var entry in _guestLogs.values) {
-      final day = Map<String, int>.from(entry);
-      total += (day[key] ?? 0);
+
+    // ✅ Case 1: new nested format (daily entries)
+    if (_guestLogs.values.isNotEmpty && _guestLogs.values.first is Map) {
+      for (var entry in _guestLogs.values) {
+        final day = Map<String, int>.from(entry);
+        total += (day[key] ?? 0);
+      }
+      return total;
     }
-    return total;
+
+    // ✅ Case 2: old flat format { "fajr": 10, "dhuhr": 5, ... }
+    if (_guestLogs.containsKey(key)) {
+      return _guestLogs[key] ?? 0;
+    }
+
+    return 0;
   }
+
 
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
 
-    // -------------------
-    // DATA CALCULATIONS
-    // -------------------
     final initial = widget.initial;
     final remaining = widget.remaining;
+    final perDay = widget.perDay ?? {};
 
-    // For guests, calculate completed counts from logs
-    final fajrCompleted = _isGuest
-        ? _guestCompleted('fajr')
-        : (initial.fajr - remaining.fajr).clamp(0, initial.fajr);
-    final dhuhrCompleted = _isGuest
-        ? _guestCompleted('dhuhr')
-        : (initial.dhuhr - remaining.dhuhr).clamp(0, initial.dhuhr);
-    final asrCompleted = _isGuest
-        ? _guestCompleted('asr')
-        : (initial.asr - remaining.asr).clamp(0, initial.asr);
-    final maghribCompleted = _isGuest
-        ? _guestCompleted('maghrib')
-        : (initial.maghrib - remaining.maghrib).clamp(0, initial.maghrib);
-    final ishaCompleted = _isGuest
-        ? _guestCompleted('isha')
-        : (initial.isha - remaining.isha).clamp(0, initial.isha);
+    int getCompleted(int total, int rem) => (total - rem).clamp(0, total);
 
-    final totalCompleted = fajrCompleted +
-        dhuhrCompleted +
-        asrCompleted +
-        maghribCompleted +
-        ishaCompleted;
+    final fajrCompleted = _isGuest ? _guestCompleted('fajr') : getCompleted(initial.fajr, remaining.fajr);
+    final dhuhrCompleted = _isGuest ? _guestCompleted('dhuhr') : getCompleted(initial.dhuhr, remaining.dhuhr);
+    final asrCompleted = _isGuest ? _guestCompleted('asr') : getCompleted(initial.asr, remaining.asr);
+    final maghribCompleted = _isGuest ? _guestCompleted('maghrib') : getCompleted(initial.maghrib, remaining.maghrib);
+    final ishaCompleted = _isGuest ? _guestCompleted('isha') : getCompleted(initial.isha, remaining.isha);
+
+    final totalCompleted = fajrCompleted + dhuhrCompleted + asrCompleted + maghribCompleted + ishaCompleted;
     final totalRemaining = remaining.sum;
-
-    final perDayTotals = widget.perDay ?? const {};
-    final perDaySum = (perDayTotals['fajr'] ?? 0) +
-        (perDayTotals['dhuhr'] ?? 0) +
-        (perDayTotals['asr'] ?? 0) +
-        (perDayTotals['maghrib'] ?? 0) +
-        (perDayTotals['isha'] ?? 0);
-
-    final daysRemaining =
-    perDaySum > 0 ? (totalRemaining / perDaySum).ceil() : null;
-    final estimatedFinishDate = daysRemaining != null
-        ? DateTime.now().add(Duration(days: daysRemaining))
-        : null;
 
     String percentStr(int completed, int total) {
       if (total <= 0) return '0%';
@@ -123,9 +123,18 @@ class _StatsDashboardState extends State<StatsDashboard> {
       return '${months[d.month - 1]} ${d.day}, ${d.year}';
     }
 
-    // -------------------
-    // MAIN UI
-    // -------------------
+    DateTime? prayerFinishDate(int remainingCount, int? perDayCount) {
+      if (perDayCount == null || perDayCount == 0) return null;
+      final days = (remainingCount / perDayCount).ceil();
+      return DateTime.now().add(Duration(days: days));
+    }
+
+    final fajrFinish = prayerFinishDate(remaining.fajr, perDay['fajr']);
+    final dhuhrFinish = prayerFinishDate(remaining.dhuhr, perDay['dhuhr']);
+    final asrFinish = prayerFinishDate(remaining.asr, perDay['asr']);
+    final maghribFinish = prayerFinishDate(remaining.maghrib, perDay['maghrib']);
+    final ishaFinish = prayerFinishDate(remaining.isha, perDay['isha']);
+
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -134,12 +143,13 @@ class _StatsDashboardState extends State<StatsDashboard> {
           children: [
             Text(
               loc.statistics,
-              style:
-              const TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 4),
-            Text(loc.totalProgress,
-                style: const TextStyle(color: Colors.black54)),
+            Text(
+              loc.totalProgress,
+              style: const TextStyle(color: Colors.black54),
+            ),
             const SizedBox(height: 20),
 
             Row(
@@ -162,16 +172,7 @@ class _StatsDashboardState extends State<StatsDashboard> {
             ),
             const SizedBox(height: 20),
 
-            _gradientInfoCard(
-              title: loc.estimatedFinishDate,
-              value: estimatedFinishDate != null
-                  ? fmtDate(estimatedFinishDate)
-                  : loc.noDailyPlan,
-              subtitle: perDaySum > 0
-                  ? loc.atCurrentPace
-                  : loc.setDailyPlanToEstimate,
-            ),
-            const SizedBox(height: 20),
+            // Removed estimated finish date section here
 
             _sectionCard(
               child: Column(
@@ -180,15 +181,19 @@ class _StatsDashboardState extends State<StatsDashboard> {
                   Text(
                     loc.prayerBreakdown,
                     style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w700),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 16),
+
                   _breakdownRow(
                     context,
                     icon: Icons.nights_stay_outlined,
                     label: loc.fajr,
                     count: '$fajrCompleted/${initial.fajr}',
                     percent: percentStr(fajrCompleted, initial.fajr),
+                    finishDate: fajrFinish != null ? fmtDate(fajrFinish) : '–',
                   ),
                   _breakdownRow(
                     context,
@@ -196,6 +201,7 @@ class _StatsDashboardState extends State<StatsDashboard> {
                     label: loc.dhuhr,
                     count: '$dhuhrCompleted/${initial.dhuhr}',
                     percent: percentStr(dhuhrCompleted, initial.dhuhr),
+                    finishDate: dhuhrFinish != null ? fmtDate(dhuhrFinish) : '–',
                   ),
                   _breakdownRow(
                     context,
@@ -203,6 +209,7 @@ class _StatsDashboardState extends State<StatsDashboard> {
                     label: loc.asr,
                     count: '$asrCompleted/${initial.asr}',
                     percent: percentStr(asrCompleted, initial.asr),
+                    finishDate: asrFinish != null ? fmtDate(asrFinish) : '–',
                   ),
                   _breakdownRow(
                     context,
@@ -210,6 +217,7 @@ class _StatsDashboardState extends State<StatsDashboard> {
                     label: loc.maghrib,
                     count: '$maghribCompleted/${initial.maghrib}',
                     percent: percentStr(maghribCompleted, initial.maghrib),
+                    finishDate: maghribFinish != null ? fmtDate(maghribFinish) : '–',
                   ),
                   _breakdownRow(
                     context,
@@ -217,6 +225,7 @@ class _StatsDashboardState extends State<StatsDashboard> {
                     label: loc.isha,
                     count: '$ishaCompleted/${initial.isha}',
                     percent: percentStr(ishaCompleted, initial.isha),
+                    finishDate: ishaFinish != null ? fmtDate(ishaFinish) : '–',
                   ),
                 ],
               ),
@@ -277,65 +286,13 @@ class _StatsDashboardState extends State<StatsDashboard> {
     child: child,
   );
 
-  Widget _gradientInfoCard({
-    required String title,
-    required String value,
-    required String subtitle,
-  }) =>
-      Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade300),
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFEFF5FF), Color(0xFFFFFFFF)],
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: const Color(0xFFDBEAFE),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.calendar_today_rounded,
-                  color: Color(0xFF2563EB), size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w700, color: Colors.black87)),
-                  const SizedBox(height: 6),
-                  Text(value,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 16,
-                          color: Color(0xFF2563EB))),
-                  const SizedBox(height: 6),
-                  Text(subtitle,
-                      style: const TextStyle(color: Colors.black54)),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-
   Widget _breakdownRow(
       BuildContext context, {
         required IconData icon,
         required String label,
         required String count,
         required String percent,
+        required String finishDate,
       }) =>
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -344,9 +301,22 @@ class _StatsDashboardState extends State<StatsDashboard> {
             Icon(icon, color: const Color(0xFF2563EB)),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(label,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 16)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 16)),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Finish: $finishDate',
+                    style: const TextStyle(
+                        color: Colors.black45,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400),
+                  ),
+                ],
+              ),
             ),
             Text(count, style: const TextStyle(color: Colors.black54)),
             const SizedBox(width: 12),

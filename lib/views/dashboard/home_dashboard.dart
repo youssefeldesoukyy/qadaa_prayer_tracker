@@ -23,15 +23,15 @@ class HomeDashboard extends StatefulWidget {
   State<HomeDashboard> createState() => _HomeDashboardState();
 }
 
-class _HomeDashboardState extends State<HomeDashboard> {
+class _HomeDashboardState extends State<HomeDashboard>
+    with SingleTickerProviderStateMixin {
   int _tabIndex = 0;
   late DailyTotals _initial;
   late DailyTotals _remaining;
   int _totalCompleted = 0;
   bool _isLoading = true;
   bool _isGuest = false;
-
-  Map<String, dynamic> _guestLogs = {}; // 🟢 store guest logs locally
+  Map<String, dynamic> _guestLogs = {};
 
   @override
   void initState() {
@@ -41,15 +41,8 @@ class _HomeDashboardState extends State<HomeDashboard> {
     _loadUserOrGuestData();
   }
 
-  // REBUILD STATS WHEN GUEST LOGS UPDATE
-  // -------------------------------------------------
-  void _refreshStats() {
-    setState(() {});
-  }
+  void _refreshStats() => setState(() {});
 
-  // -------------------------------------------------
-  // LOAD DATA (Firebase or Guest)
-  // -------------------------------------------------
   Future<void> _loadUserOrGuestData() async {
     final prefs = await SharedPreferences.getInstance();
     _isGuest = prefs.getBool('isGuest') ?? false;
@@ -64,7 +57,6 @@ class _HomeDashboardState extends State<HomeDashboard> {
       return;
     }
 
-    // 🔵 Firebase User
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       setState(() => _isLoading = false);
@@ -72,16 +64,14 @@ class _HomeDashboardState extends State<HomeDashboard> {
     }
 
     try {
-      final doc = await FirebaseFirestore.instance
-          .collection('Users')
-          .doc(user.uid)
-          .get();
+      final doc =
+      await FirebaseFirestore.instance.collection('Users').doc(user.uid).get();
 
       if (doc.exists) {
         final data = doc.data() ?? {};
         final prayerPlan = Map<String, dynamic>.from(data['prayerPlan'] ?? {});
         final missed =
-            Map<String, dynamic>.from(prayerPlan['missedPrayers'] ?? {});
+        Map<String, dynamic>.from(prayerPlan['missedPrayers'] ?? {});
         final logs = Map<String, dynamic>.from(data['logs'] ?? {});
 
         int loggedFajr = 0,
@@ -113,7 +103,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
             dhuhr: (_initial.dhuhr - loggedDhuhr).clamp(0, _initial.dhuhr),
             asr: (_initial.asr - loggedAsr).clamp(0, _initial.asr),
             maghrib:
-                (_initial.maghrib - loggedMaghrib).clamp(0, _initial.maghrib),
+            (_initial.maghrib - loggedMaghrib).clamp(0, _initial.maghrib),
             isha: (_initial.isha - loggedIsha).clamp(0, _initial.isha),
           );
 
@@ -121,8 +111,6 @@ class _HomeDashboardState extends State<HomeDashboard> {
               loggedFajr + loggedDhuhr + loggedAsr + loggedMaghrib + loggedIsha;
           _isLoading = false;
         });
-
-        debugPrint('✅ Loaded Firestore data');
       } else {
         setState(() => _isLoading = false);
       }
@@ -132,9 +120,6 @@ class _HomeDashboardState extends State<HomeDashboard> {
     }
   }
 
-  // -------------------------------------------------
-  // APPLY GUEST LOGS
-  // -------------------------------------------------
   void _applyGuestLogs() {
     int loggedFajr = 0,
         loggedDhuhr = 0,
@@ -142,13 +127,47 @@ class _HomeDashboardState extends State<HomeDashboard> {
         loggedMaghrib = 0,
         loggedIsha = 0;
 
-    for (var entry in _guestLogs.values) {
-      final day = Map<String, int>.from(entry);
-      loggedFajr += (day['fajr'] ?? 0);
-      loggedDhuhr += (day['dhuhr'] ?? 0);
-      loggedAsr += (day['asr'] ?? 0);
-      loggedMaghrib += (day['maghrib'] ?? 0);
-      loggedIsha += (day['isha'] ?? 0);
+    if (_guestLogs.isEmpty) return;
+
+    try {
+      // ✅ Case 1: new nested format — daily logs (e.g. {"20-10-2025": {"fajr":1}})
+      if (_guestLogs.values.isNotEmpty && _guestLogs.values.first is Map) {
+        for (var entry in _guestLogs.values) {
+          final day = Map<String, int>.from(entry);
+          loggedFajr += (day['fajr'] ?? 0);
+          loggedDhuhr += (day['dhuhr'] ?? 0);
+          loggedAsr += (day['asr'] ?? 0);
+          loggedMaghrib += (day['maghrib'] ?? 0);
+          loggedIsha += (day['isha'] ?? 0);
+        }
+      }
+      // ✅ Case 2: old flat format { "fajr": 10, "dhuhr": 3, ... }
+      else if (_guestLogs.containsKey('fajr')) {
+        loggedFajr = _guestLogs['fajr'] ?? 0;
+        loggedDhuhr = _guestLogs['dhuhr'] ?? 0;
+        loggedAsr = _guestLogs['asr'] ?? 0;
+        loggedMaghrib = _guestLogs['maghrib'] ?? 0;
+        loggedIsha = _guestLogs['isha'] ?? 0;
+      } else {
+        // fallback for corrupted formats (like int)
+        debugPrint('⚠️ guestLogs corrupted — resetting');
+        _guestLogs = {
+          'fajr': 0,
+          'dhuhr': 0,
+          'asr': 0,
+          'maghrib': 0,
+          'isha': 0,
+        };
+      }
+    } catch (e) {
+      debugPrint('❌ Error parsing guestLogs: $e');
+      _guestLogs = {
+        'fajr': 0,
+        'dhuhr': 0,
+        'asr': 0,
+        'maghrib': 0,
+        'isha': 0,
+      };
     }
 
     setState(() {
@@ -159,23 +178,19 @@ class _HomeDashboardState extends State<HomeDashboard> {
         maghrib: (_initial.maghrib - loggedMaghrib).clamp(0, _initial.maghrib),
         isha: (_initial.isha - loggedIsha).clamp(0, _initial.isha),
       );
+
       _totalCompleted =
           loggedFajr + loggedDhuhr + loggedAsr + loggedMaghrib + loggedIsha;
     });
-
-    debugPrint('✅ Applied guest logs: $_guestLogs');
   }
 
+
   int get _totalInitial => _initial.sum;
-
   int get _totalRemaining => _remaining.sum;
-
   double get _progress =>
       _totalInitial == 0 ? 0 : _totalCompleted / _totalInitial;
 
-  // -------------------------------------------------
-  // LOG PRAYER
-  // -------------------------------------------------
+  // ---------------- LOGIC ----------------
   void _logOne(String prayerKey) async {
     final loc = AppLocalizations.of(context)!;
     bool logged = false;
@@ -185,35 +200,35 @@ class _HomeDashboardState extends State<HomeDashboard> {
         case 'fajr':
           if (_remaining.fajr > 0) {
             _remaining = _remaining.copyWith(fajr: _remaining.fajr - 1);
-            _totalCompleted += 1;
+            _totalCompleted++;
             logged = true;
           }
           break;
         case 'dhuhr':
           if (_remaining.dhuhr > 0) {
             _remaining = _remaining.copyWith(dhuhr: _remaining.dhuhr - 1);
-            _totalCompleted += 1;
+            _totalCompleted++;
             logged = true;
           }
           break;
         case 'asr':
           if (_remaining.asr > 0) {
             _remaining = _remaining.copyWith(asr: _remaining.asr - 1);
-            _totalCompleted += 1;
+            _totalCompleted++;
             logged = true;
           }
           break;
         case 'maghrib':
           if (_remaining.maghrib > 0) {
             _remaining = _remaining.copyWith(maghrib: _remaining.maghrib - 1);
-            _totalCompleted += 1;
+            _totalCompleted++;
             logged = true;
           }
           break;
         case 'isha':
           if (_remaining.isha > 0) {
             _remaining = _remaining.copyWith(isha: _remaining.isha - 1);
-            _totalCompleted += 1;
+            _totalCompleted++;
             logged = true;
           }
           break;
@@ -231,7 +246,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
     final label = prayerNames[prayerKey] ?? prayerKey;
     final title = logged ? loc.prayerLogged : loc.nothingToLog;
     final subtitle =
-        logged ? loc.prayerCompleted(label) : loc.noPrayerRemaining(label);
+    logged ? loc.prayerCompleted(label) : loc.noPrayerRemaining(label);
 
     _showCenteredNotice(title: title, subtitle: subtitle);
 
@@ -244,13 +259,9 @@ class _HomeDashboardState extends State<HomeDashboard> {
     }
   }
 
-  // -------------------------------------------------
-  // LOG TO FIRESTORE (users)
-  // -------------------------------------------------
   Future<void> _logPrayerToFirestore(String prayerKey) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-
     final firestore = FirebaseFirestore.instance;
     final dateKey = DateFormat('dd-MM-yyyy').format(DateTime.now());
 
@@ -258,34 +269,26 @@ class _HomeDashboardState extends State<HomeDashboard> {
       final userRef = firestore.collection('Users').doc(user.uid);
       final userDoc = await userRef.get();
       final data = userDoc.data() ?? {};
-
       final logs = Map<String, dynamic>.from(data['logs'] ?? {});
-      final todayLog = Map<String, dynamic>.from(logs[dateKey] ??
-          {
-            'fajr': 0,
-            'dhuhr': 0,
-            'asr': 0,
-            'maghrib': 0,
-            'isha': 0,
-          });
+      final todayLog = Map<String, dynamic>.from(logs[dateKey] ?? {
+        'fajr': 0,
+        'dhuhr': 0,
+        'asr': 0,
+        'maghrib': 0,
+        'isha': 0,
+      });
 
       todayLog[prayerKey] = (todayLog[prayerKey] ?? 0) + 1;
       logs[dateKey] = todayLog;
-
       await userRef.update({'logs': logs});
-      debugPrint('✅ Logged $prayerKey to Firestore');
     } catch (e) {
       debugPrint('❌ Error logging prayer: $e');
     }
   }
 
-  // -------------------------------------------------
-  // LOG LOCALLY (guest)
-  // -------------------------------------------------
   Future<void> _logPrayerLocally(String prayerKey) async {
     final prefs = await SharedPreferences.getInstance();
     final dateKey = DateFormat('dd-MM-yyyy').format(DateTime.now());
-
     final todayLog = Map<String, dynamic>.from(_guestLogs[dateKey] ?? {
       'fajr': 0,
       'dhuhr': 0,
@@ -296,22 +299,12 @@ class _HomeDashboardState extends State<HomeDashboard> {
 
     todayLog[prayerKey] = (todayLog[prayerKey] ?? 0) + 1;
     _guestLogs[dateKey] = todayLog;
-
     await prefs.setString('guestLogs', jsonEncode(_guestLogs));
-    debugPrint('✅ Saved guest log: $_guestLogs');
-
-    _applyGuestLogs(); // update counters in HomeDashboard
-    _refreshStats();   // rebuild StatsDashboard immediately
+    _applyGuestLogs();
+    _refreshStats();
   }
 
-
-  // -------------------------------------------------
-  // NOTICE POPUP
-  // -------------------------------------------------
-  void _showCenteredNotice({
-    required String title,
-    required String subtitle,
-  }) {
+  void _showCenteredNotice({required String title, required String subtitle}) {
     final loc = AppLocalizations.of(context)!;
     showGeneralDialog(
       context: context,
@@ -319,21 +312,19 @@ class _HomeDashboardState extends State<HomeDashboard> {
       barrierLabel: loc.barrierDismiss,
       barrierColor: Colors.black.withOpacity(0.4),
       transitionDuration: const Duration(milliseconds: 200),
-      pageBuilder: (ctx, anim1, anim2) {
+      pageBuilder: (ctx, _, __) {
         Future.delayed(const Duration(seconds: 2), () {
           if (Navigator.of(ctx).canPop()) Navigator.of(ctx).pop();
         });
-
         return Center(
           child: Material(
             color: Colors.transparent,
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 24),
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.black.withOpacity(0.08)),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -350,124 +341,10 @@ class _HomeDashboardState extends State<HomeDashboard> {
           ),
         );
       },
-      transitionBuilder: (ctx, anim, secondary, child) {
-        final curved = CurvedAnimation(
-          parent: anim,
-          curve: Curves.easeOutCubic,
-          reverseCurve: Curves.easeInCubic,
-        );
-        return FadeTransition(
-          opacity: curved,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.95, end: 1).animate(curved),
-            child: child,
-          ),
-        );
-      },
     );
   }
 
-  // -------------------------------------------------
-  // LOG DIALOG
-  // -------------------------------------------------
-  void _openLogDialog() {
-    final loc = AppLocalizations.of(context)!;
-
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (ctx) {
-        return Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          insetPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(loc.logQadaaPrayer,
-                                style: const TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.w700)),
-                            const SizedBox(height: 4),
-                            Text(loc.whichPrayer,
-                                style: const TextStyle(color: Colors.black54)),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => Navigator.pop(ctx),
-                        icon: const Icon(Icons.close),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  _logTile(ctx, Icons.nights_stay_outlined, loc.fajr,
-                      _remaining.fajr, 'fajr'),
-                  _logTile(ctx, Icons.wb_sunny_outlined, loc.dhuhr,
-                      _remaining.dhuhr, 'dhuhr'),
-                  _logTile(ctx, Icons.wb_twilight_outlined, loc.asr,
-                      _remaining.asr, 'asr'),
-                  _logTile(ctx, Icons.brightness_3_outlined, loc.maghrib,
-                      _remaining.maghrib, 'maghrib'),
-                  _logTile(ctx, Icons.star_border, loc.isha, _remaining.isha,
-                      'isha'),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _logTile(BuildContext ctx, IconData icon, String label, int remaining,
-      String keyName) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: InkWell(
-        onTap: () {
-          Navigator.pop(ctx);
-          _logOne(keyName);
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE6E8EC)),
-          ),
-          child: Row(
-            children: [
-              Icon(icon, color: const Color(0xFF2563EB)),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(label,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 16)),
-              ),
-              Text('$remaining remaining',
-                  style: const TextStyle(color: Colors.black54)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // -------------------------------------------------
-  // HOME UI
-  // -------------------------------------------------
+  // ---------------- UI ----------------
   Widget _homePage() {
     final loc = AppLocalizations.of(context)!;
     if (_isLoading) return const Center(child: CircularProgressIndicator());
@@ -481,7 +358,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
           children: [
             Text(loc.qadaaTracker,
                 style:
-                    const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+                const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
             const SizedBox(height: 4),
             Text(loc.totalProgress,
                 style: const TextStyle(color: Colors.black54)),
@@ -532,127 +409,143 @@ class _HomeDashboardState extends State<HomeDashboard> {
             ),
             const SizedBox(height: 20),
             _breakdownContainer(loc),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: ElevatedButton(
-                onPressed: _openLogDialog,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-                child: Text('+ ${loc.logQadaaPrayer}',
-                    style: const TextStyle(fontWeight: FontWeight.w600)),
-              ),
-            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _statCard(String title, String value, {Color? valueColor}) =>
-      Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: Column(
-          children: [
-            Text(value,
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: valueColor ?? Colors.black)),
-            const SizedBox(height: 6),
-            Text(title, style: const TextStyle(color: Colors.black54)),
-          ],
-        ),
-      );
+  Widget _statCard(String title, String value, {Color? valueColor}) => Container(
+    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: Colors.grey.shade300),
+    ),
+    child: Column(
+      children: [
+        Text(value,
+            style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: valueColor ?? Colors.black)),
+        const SizedBox(height: 6),
+        Text(title, style: const TextStyle(color: Colors.black54)),
+      ],
+    ),
+  );
 
   Widget _breakdownContainer(AppLocalizations loc) => Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(loc.prayerBreakdown,
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 10),
-            _breakdownRow(Icons.nights_stay_outlined, loc.fajr, _initial.fajr,
-                _remaining.fajr),
-            _breakdownRow(Icons.wb_sunny_outlined, loc.dhuhr, _initial.dhuhr,
-                _remaining.dhuhr),
-            _breakdownRow(Icons.wb_twilight_outlined, loc.asr, _initial.asr,
-                _remaining.asr),
-            _breakdownRow(Icons.brightness_3_outlined, loc.maghrib,
-                _initial.maghrib, _remaining.maghrib),
-            _breakdownRow(
-                Icons.star_border, loc.isha, _initial.isha, _remaining.isha),
-          ],
-        ),
-      );
+    width: double.infinity,
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: Colors.grey.shade300),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(loc.prayerBreakdown,
+            style:
+            const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 10),
+        _breakdownRow(Icons.nights_stay_outlined, loc.fajr, _initial.fajr,
+            _remaining.fajr, 'fajr'),
+        _breakdownRow(Icons.wb_sunny_outlined, loc.dhuhr, _initial.dhuhr,
+            _remaining.dhuhr, 'dhuhr'),
+        _breakdownRow(Icons.wb_twilight_outlined, loc.asr, _initial.asr,
+            _remaining.asr, 'asr'),
+        _breakdownRow(Icons.brightness_3_outlined, loc.maghrib,
+            _initial.maghrib, _remaining.maghrib, 'maghrib'),
+        _breakdownRow(Icons.star_border, loc.isha, _initial.isha,
+            _remaining.isha, 'isha'),
+      ],
+    ),
+  );
 
   Widget _breakdownRow(
-      IconData icon, String label, int initial, int remaining) {
+      IconData icon, String label, int initial, int remaining, String key) {
     final completed = (initial - remaining).clamp(0, initial);
     final pct = initial == 0 ? 0.0 : completed / initial;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: const Color(0xFF2563EB)),
-              const SizedBox(width: 8),
-              Expanded(
-                  child: Text(label,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 16))),
-              Text('$completed/$initial'),
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: InkWell(
+        onTap: () => _logOne(key),
+        borderRadius: BorderRadius.circular(12),
+        splashColor: const Color(0xFF2563EB).withOpacity(0.1),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE6E8EC)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
             ],
           ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: pct,
-              minHeight: 8,
-              backgroundColor: const Color(0xFFF1F2F4),
-              color: const Color(0xFF2563EB),
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, color: const Color(0xFF2563EB)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 16),
+                    ),
+                  ),
+                  Text(
+                    '$completed/$initial',
+                    style: const TextStyle(color: Colors.black87),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(
+                  value: pct,
+                  minHeight: 8,
+                  backgroundColor: const Color(0xFFF1F2F4),
+                  color: const Color(0xFF2563EB),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  '$remaining remaining',
+                  style: const TextStyle(color: Colors.black54, fontSize: 13),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Text('$remaining remaining',
-                style: const TextStyle(color: Colors.black54)),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  // -------------------------------------------------
-  // BOTTOM NAVIGATION
-  // -------------------------------------------------
   Widget _statsPage() => StatsDashboard(
-      key: ValueKey(_totalCompleted),initial: _initial, remaining: _remaining, perDay: widget.perDay);
+      key: ValueKey(_totalCompleted),
+      initial: _initial,
+      remaining: _remaining,
+      perDay: widget.perDay);
 
   Widget _settingsPage() => SettingsDashboard(
-      initial: _initial, remaining: _remaining, perDay: widget.perDay);
+    initial: _initial,
+    remaining: _remaining,
+    perDay: widget.perDay,
+    onDataChanged: _loadUserOrGuestData,
+  );
 
   @override
   Widget build(BuildContext context) {

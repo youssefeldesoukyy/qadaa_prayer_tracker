@@ -8,18 +8,23 @@ import 'package:qadaa_prayer_tracker/Views/qadaa_missed.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:qadaa_prayer_tracker/Views/Dashboard/edit_logged_prayers.dart';
+
 
 class SettingsDashboard extends StatefulWidget {
-  final DailyTotals initial;
+  DailyTotals initial;
   final DailyTotals remaining;
   final Map<String, int>? perDay;
+  final VoidCallback? onDataChanged; // 👈 add this
 
-  const SettingsDashboard({
+  SettingsDashboard({
     super.key,
     required this.initial,
     required this.remaining,
     this.perDay,
+    this.onDataChanged,
   });
+
 
   @override
   State<SettingsDashboard> createState() => _SettingsDashboardState();
@@ -120,6 +125,19 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
     debugPrint('✅ Local SharedPreferences cleared.');
   }
 
+  void _editLoggedPrayers() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const EditLoggedPrayers()),
+    );
+
+    if (result == true && mounted) {
+      setState(() {});
+      widget.onDataChanged?.call(); // 👈 triggers HomeDashboard refresh
+    }
+  }
+
+
   // -------------------------------------------------
   // ACTIONS
   // -------------------------------------------------
@@ -143,6 +161,26 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
     }
   }
 
+  // 🟢 NEW: Edit missed prayers
+  void _editMissedPrayers() async {
+    final updatedTotals = await Navigator.push<DailyTotals>(
+      context,
+      MaterialPageRoute(builder: (_) => const QadaaMissed()),
+    );
+
+    if (updatedTotals != null) {
+      setState(() {
+        widget.initial = DailyTotals(
+          fajr: updatedTotals.fajr,
+          dhuhr: updatedTotals.dhuhr,
+          asr: updatedTotals.asr,
+          maghrib: updatedTotals.maghrib,
+          isha: updatedTotals.isha,
+        );
+      });
+    }
+  }
+
   void _resetAllData() {
     final loc = AppLocalizations.of(context)!;
 
@@ -154,8 +192,7 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child:
-            Text(loc.cancel, style: const TextStyle(color: Colors.black)),
+            child: Text(loc.cancel, style: const TextStyle(color: Colors.black)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -198,7 +235,6 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
     if (_isGuest) {
       // 🟢 Guest → keep local data, just navigate to main sign-in screen
       if (context.mounted) {
-        // Clear the guest flag but keep his saved data
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('isGuest', false);
 
@@ -210,7 +246,6 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
       }
       return;
     }
-
 
     // 🔵 Logged-in user → confirm logout
     showDialog(
@@ -255,7 +290,6 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
   // -------------------------------------------------
   // MAIN BUILD
   // -------------------------------------------------
-
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
@@ -311,7 +345,7 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
   }
 
   // -------------------------------------------------
-  // UI SECTIONS (same as before)
+  // UI SECTIONS
   // -------------------------------------------------
   Widget _statusCard(AppLocalizations loc) => _card(
     child: Column(
@@ -333,8 +367,45 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
         _statusRow(
             loc.completed, '$_totalCompleted ${loc.prayers}', Colors.green),
         const SizedBox(height: 8),
-        _statusRow(loc.remainingPrayers, '$_totalRemaining ${loc.prayers}',
+        _statusRow(
+            loc.remainingPrayers,
+            '$_totalRemaining ${loc.prayers}',
             const Color(0xFF2563EB)),
+        const SizedBox(height: 16),
+        // 🟢 New Button
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: _editMissedPrayers,
+            icon: const Icon(Icons.edit, size: 18),
+            label: Text(loc.editMissedPrayers),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF2563EB),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: _editLoggedPrayers,
+            icon: const Icon(Icons.edit_calendar, size: 18),
+            label: Text(loc.editLogs),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF2563EB),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ),
+
       ],
     ),
   );
@@ -450,16 +521,18 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
     ),
   );
 
-  Widget _footer(AppLocalizations loc) => Column(
-    children: [
-      Text(loc.appVersion,
-          style:
-          const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-      const SizedBox(height: 4),
-      Text(loc.footerSubtitle,
-          style: const TextStyle(color: Colors.black54),
-          textAlign: TextAlign.center),
-    ],
+  Widget _footer(AppLocalizations loc) => Center(
+    child: Column(
+      children: [
+        Text(loc.appVersion,
+            style:
+            const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 4),
+        Text(loc.footerSubtitle,
+            style: const TextStyle(color: Colors.black54),
+            textAlign: TextAlign.center),
+      ],
+    ),
   );
 
   Widget _card({required Widget child}) => Container(

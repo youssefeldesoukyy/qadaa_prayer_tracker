@@ -293,38 +293,51 @@ class _StatsDashboardState extends State<StatsDashboard> {
         required String count,
         required String percent,
         required String finishDate,
-      }) =>
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
-          children: [
-            Icon(icon, color: const Color(0xFF2563EB)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 16)),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Finish: $finishDate',
-                    style: const TextStyle(
-                        color: Colors.black45,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w400),
+      }) {
+    final loc = AppLocalizations.of(context)!;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          Icon(icon, color: const Color(0xFF2563EB)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 16),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${loc.finish}: $finishDate', // ✅ localized label
+                  style: const TextStyle(
+                    color: Colors.black45,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            Text(count, style: const TextStyle(color: Colors.black54)),
-            const SizedBox(width: 12),
-            Text(percent,
-                style: const TextStyle(
-                    color: Color(0xFF2563EB),
-                    fontWeight: FontWeight.w700)),
-          ],
-        ),
-      );
+          ),
+          Text(
+            count,
+            style: const TextStyle(color: Colors.black54),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            percent,
+            style: const TextStyle(
+              color: Color(0xFF2563EB),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 }

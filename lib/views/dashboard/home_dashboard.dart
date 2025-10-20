@@ -469,6 +469,8 @@ class _HomeDashboardState extends State<HomeDashboard>
     final completed = (initial - remaining).clamp(0, initial);
     final pct = initial == 0 ? 0.0 : completed / initial;
 
+    final loc = AppLocalizations.of(context)!;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: InkWell(
@@ -523,7 +525,7 @@ class _HomeDashboardState extends State<HomeDashboard>
               Align(
                 alignment: Alignment.centerRight,
                 child: Text(
-                  '$remaining remaining',
+                  '$remaining ${loc.remaining}',
                   style: const TextStyle(color: Colors.black54, fontSize: 13),
                 ),
               ),

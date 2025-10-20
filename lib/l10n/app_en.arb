@@ -131,6 +131,6 @@
   "continueAsGuest": "Continue as Guest",
   "editMissedPrayers": "Edit Missed Prayers",
   "editLogs": "Edit Logged Prayers",
-  "saveChanges": "Save Changes"
-
+  "saveChanges": "Save Changes",
+  "finish": "Finish"
 }

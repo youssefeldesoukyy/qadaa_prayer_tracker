@@ -372,4 +372,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get send => 'إرسال';
+
+  @override
+  String get googleSignInFailed => 'فشل تسجيل الدخول بجوجل';
+
+  @override
+  String get appleSignInFailed => 'فشل تسجيل الدخول بآبل';
+
+  @override
+  String get google => 'جوجل';
+
+  @override
+  String get apple => 'آبل';
+
+  @override
+  String get continueAsGuest => 'المتابعة كضيف';
 }

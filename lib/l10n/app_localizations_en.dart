@@ -374,4 +374,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get send => 'Send';
+
+  @override
+  String get googleSignInFailed => 'Google Sign-In failed';
+
+  @override
+  String get appleSignInFailed => 'Apple Sign-In failed';
+
+  @override
+  String get google => 'Google';
+
+  @override
+  String get apple => 'Apple';
+
+  @override
+  String get continueAsGuest => 'Continue as Guest';
 }

@@ -123,5 +123,10 @@
   "resetEmailSent": "A password reset email has been sent.",
   "resetFailed": "Failed to send reset email. Please try again.",
   "emailNotFound": "No account found with this email.",
-  "send": "Send"
+  "send": "Send",
+  "googleSignInFailed": "Google Sign-In failed",
+  "appleSignInFailed": "Apple Sign-In failed",
+  "google": "Google",
+  "apple": "Apple",
+  "continueAsGuest": "Continue as Guest"
 }

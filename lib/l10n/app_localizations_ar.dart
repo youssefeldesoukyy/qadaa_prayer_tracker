@@ -398,5 +398,5 @@ class AppLocalizationsAr extends AppLocalizations {
   String get saveChanges => 'حفظ التغييرات';
 
   @override
-  String get finish => 'ينتهي';
+  String get finish => 'تنتهي';
 }

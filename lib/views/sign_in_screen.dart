@@ -65,6 +65,8 @@ class _SignInScreenState extends State<SignInScreen> {
 
   // ✅ Google Sign-In
   Future<void> _signInWithGoogle() async {
+    final loc = AppLocalizations.of(context)!;
+
     try {
       setState(() => _isLoading = true);
       final GoogleSignIn googleSignIn = GoogleSignIn(scopes: ['email']);
@@ -119,7 +121,7 @@ class _SignInScreenState extends State<SignInScreen> {
     } catch (e) {
       debugPrint('Google sign-in error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Google Sign-In failed")),
+        SnackBar(content: Text(loc.googleSignInFailed)),
       );
     } finally {
       setState(() => _isLoading = false);
@@ -128,9 +130,14 @@ class _SignInScreenState extends State<SignInScreen> {
 
   // ✅ Apple Sign-In (iOS only)
   Future<void> _signInWithApple() async {
-    try {
-      setState(() => _isLoading = true);
+    final loc = AppLocalizations.of(context)!;
 
+    // 🔒 Disable the button immediately
+    if (_isLoading) return;
+
+    setState(() => _isLoading = true);
+
+    try {
       final appleCredential = await SignInWithApple.getAppleIDCredential(
         scopes: [
           AppleIDAuthorizationScopes.email,
@@ -144,16 +151,17 @@ class _SignInScreenState extends State<SignInScreen> {
       );
 
       final userCredential =
-          await FirebaseAuth.instance.signInWithCredential(oauthCredential);
+      await FirebaseAuth.instance.signInWithCredential(oauthCredential);
 
       await _navigateAfterSignIn(userCredential.user);
     } catch (e) {
       debugPrint('Apple sign-in error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Apple Sign-In failed")),
-      );
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(content: Text(loc.appleSignInFailed)),
+      // );
     } finally {
-      setState(() => _isLoading = false);
+      // 🔓 Re-enable after everything is done
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -363,7 +371,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   style: const TextStyle(color: Colors.black54),
                 ),
                 const SizedBox(height: 32),
-                //Email & Password fields
+                // Email & Password fields
                 TextField(
                   controller: _emailOrPhoneController,
                   cursorColor: const Color(0xFF2563EB),
@@ -453,8 +461,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           style: const TextStyle(fontWeight: FontWeight.w600)),
                 ),
                 const SizedBox(height: 20),
-                // 🔹 New Social Buttons
-// 🔹 Social Sign-In Row (Google + Apple)
+                // 🔹 Social Sign-In Row (Google + Apple)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -465,9 +472,9 @@ class _SignInScreenState extends State<SignInScreen> {
                           "assets/icons/google.svg",
                           height: 24,
                         ),
-                        label: const Text(
-                          "Google",
-                          style: TextStyle(color: Colors.black54),
+                        label: Text(
+                          loc.google,
+                          style: const TextStyle(color: Colors.black54),
                         ),
                         style: OutlinedButton.styleFrom(
                           minimumSize: const Size.fromHeight(50),
@@ -486,9 +493,9 @@ class _SignInScreenState extends State<SignInScreen> {
                           "assets/icons/apple.svg",
                           height: 24,
                         ),
-                        label: const Text(
-                          "Apple",
-                          style: TextStyle(color: Colors.black54),
+                        label: Text(
+                          loc.apple,
+                          style: const TextStyle(color: Colors.black54),
                         ),
                         style: OutlinedButton.styleFrom(
                           minimumSize: const Size.fromHeight(50),
@@ -501,7 +508,6 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 12),
                 OutlinedButton(
                   onPressed: _isLoading ? null : _continueAsGuest,
@@ -511,12 +517,11 @@ class _SignInScreenState extends State<SignInScreen> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text(
-                    "Continue as Guest",
-                    style: TextStyle(color: Color(0xFF2563EB)),
+                  child: Text(
+                    loc.continueAsGuest,
+                    style: const TextStyle(color: Color(0xFF2563EB)),
                   ),
                 ),
-
                 const SizedBox(height: 20),
                 TextButton(
                   onPressed: _resetPassword,

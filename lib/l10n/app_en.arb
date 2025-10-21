@@ -132,5 +132,10 @@
   "editMissedPrayers": "Edit Missed Prayers",
   "editLogs": "Edit Logged Prayers",
   "saveChanges": "Save Changes",
-  "finish": "Finish"
+  "finish": "Finish",
+  "youCannotExceed": "You cannot exceed the missed prayers count",
+  "missedPrayersFor": "missed prayers for",
+  "youAlreadyLoggedAll": "You already logged all {prayer} prayers ✅",
+  "youAlreadyLoggedAllDescription": "Shown when user reaches max logged prayers"
+
 }

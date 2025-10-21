@@ -399,4 +399,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get finish => 'تنتهي';
+
+  @override
+  String get youCannotExceed => 'لا يمكنك تجاوز عدد الصلوات الفائتة';
+
+  @override
+  String get missedPrayersFor => 'الصلوات الفائتة لـ';
+
+  @override
+  String youAlreadyLoggedAll(Object prayer) {
+    return 'لقد قمت بتسجيل جميع صلوات $prayer الفائتة ✅';
+  }
+
+  @override
+  String get youAlreadyLoggedAllDescription =>
+      'تظهر عندما يُسجل المستخدم كل الصلوات الفائتة';
 }

@@ -865,6 +865,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Finish'**
   String get finish;
+
+  /// No description provided for @youCannotExceed.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot exceed the missed prayers count'**
+  String get youCannotExceed;
+
+  /// No description provided for @missedPrayersFor.
+  ///
+  /// In en, this message translates to:
+  /// **'missed prayers for'**
+  String get missedPrayersFor;
+
+  /// No description provided for @youAlreadyLoggedAll.
+  ///
+  /// In en, this message translates to:
+  /// **'You already logged all {prayer} prayers ✅'**
+  String youAlreadyLoggedAll(Object prayer);
+
+  /// No description provided for @youAlreadyLoggedAllDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown when user reaches max logged prayers'**
+  String get youAlreadyLoggedAllDescription;
 }
 
 class _AppLocalizationsDelegate

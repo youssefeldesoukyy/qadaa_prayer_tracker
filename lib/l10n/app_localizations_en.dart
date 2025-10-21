@@ -401,4 +401,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get finish => 'Finish';
+
+  @override
+  String get youCannotExceed => 'You cannot exceed the missed prayers count';
+
+  @override
+  String get missedPrayersFor => 'missed prayers for';
+
+  @override
+  String youAlreadyLoggedAll(Object prayer) {
+    return 'You already logged all $prayer prayers ✅';
+  }
+
+  @override
+  String get youAlreadyLoggedAllDescription =>
+      'Shown when user reaches max logged prayers';
 }

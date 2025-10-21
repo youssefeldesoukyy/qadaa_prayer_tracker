@@ -247,11 +247,12 @@ class _DailyPlanState extends State<DailyPlan> {
       backgroundColor: const Color(0xFFF6F7FB),
       resizeToAvoidBottomInset: true,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          child: Center(
+        child: Center(
+          child: SingleChildScrollView(
+            // remove the outer padding that caused it to stick at top
             child: Container(
               constraints: const BoxConstraints(maxWidth: 500),
+              margin: const EdgeInsets.all(16), // slight margin from edges
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -274,11 +275,13 @@ class _DailyPlanState extends State<DailyPlan> {
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     loc.howManyQadaa,
                     style: const TextStyle(color: Colors.black54),
+                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
                   _rowField(loc.fajr, t.fajr, _fajrPerDay),

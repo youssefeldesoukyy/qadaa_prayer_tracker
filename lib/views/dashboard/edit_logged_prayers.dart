@@ -16,7 +16,18 @@ class EditLoggedPrayers extends StatefulWidget {
 class _EditLoggedPrayersState extends State<EditLoggedPrayers> {
   bool _isGuest = false;
   Map<String, dynamic> _guestLogs = {};
+
+  // total logged prayers so far
   Map<String, int> _currentTotals = {
+    'fajr': 0,
+    'dhuhr': 0,
+    'asr': 0,
+    'maghrib': 0,
+    'isha': 0,
+  };
+
+  // total missed prayers (entered earlier)
+  Map<String, int> _missedTotals = {
     'fajr': 0,
     'dhuhr': 0,
     'asr': 0,
@@ -36,10 +47,20 @@ class _EditLoggedPrayersState extends State<EditLoggedPrayers> {
 
     if (_isGuest) {
       final logsString = prefs.getString('guestLogs');
+      final missedString = prefs.getString('guestTotals'); // ✅ correct key
+
       if (logsString != null) {
         final data = jsonDecode(logsString);
         if (data is Map) _guestLogs = Map<String, dynamic>.from(data);
       }
+
+      if (missedString != null) {
+        final missedData = jsonDecode(missedString);
+        _missedTotals = Map<String, int>.from(missedData.map(
+              (key, value) => MapEntry(key, (value as num).toInt()),
+        ));
+      }
+
       _currentTotals = _calculateTotals(_guestLogs);
     } else {
       final user = FirebaseAuth.instance.currentUser;
@@ -51,12 +72,20 @@ class _EditLoggedPrayersState extends State<EditLoggedPrayers> {
         if (doc.exists) {
           final data = doc.data() ?? {};
           final logs = Map<String, dynamic>.from(data['logs'] ?? {});
+          final missed = Map<String, dynamic>.from(
+            (data['prayerPlan']?['missedPrayers']) ?? {},
+          ); // ✅ correct Firestore path
+
           _currentTotals = _calculateTotals(logs);
+          _missedTotals =
+              missed.map((k, v) => MapEntry(k, (v as num).toInt()));
         }
       }
     }
 
     setState(() {});
+    debugPrint('_missedTotals: $_missedTotals');
+    debugPrint('_currentTotals: $_currentTotals');
   }
 
   Map<String, int> _calculateTotals(Map<String, dynamic> logs) {
@@ -73,7 +102,8 @@ class _EditLoggedPrayersState extends State<EditLoggedPrayers> {
         totals['fajr'] = totals['fajr']! + ((value['fajr'] ?? 0) as num).toInt();
         totals['dhuhr'] = totals['dhuhr']! + ((value['dhuhr'] ?? 0) as num).toInt();
         totals['asr'] = totals['asr']! + ((value['asr'] ?? 0) as num).toInt();
-        totals['maghrib'] = totals['maghrib']! + ((value['maghrib'] ?? 0) as num).toInt();
+        totals['maghrib'] =
+            totals['maghrib']! + ((value['maghrib'] ?? 0) as num).toInt();
         totals['isha'] = totals['isha']! + ((value['isha'] ?? 0) as num).toInt();
       }
     }
@@ -81,9 +111,49 @@ class _EditLoggedPrayersState extends State<EditLoggedPrayers> {
     return totals;
   }
 
-  void _increment(String key) => setState(() => _currentTotals[key] = (_currentTotals[key] ?? 0) + 1);
+  String _localizedPrayerName(String key, AppLocalizations loc) {
+    switch (key) {
+      case 'fajr':
+        return loc.fajr;
+      case 'dhuhr':
+        return loc.dhuhr;
+      case 'asr':
+        return loc.asr;
+      case 'maghrib':
+        return loc.maghrib;
+      case 'isha':
+        return loc.isha;
+      default:
+        return key;
+    }
+  }
+
+
+  // ✅ Only allow increment up to missed prayers total
+  void _increment(String key) {
+    final currentLogged = _currentTotals[key] ?? 0;
+    final missedTotal = _missedTotals[key] ?? 0;
+
+    if (currentLogged < missedTotal) {
+      setState(() => _currentTotals[key] = currentLogged + 1);
+    } else {
+      final loc = AppLocalizations.of(context)!;
+      final prayerName = _localizedPrayerName(key, loc);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            loc.youAlreadyLoggedAll(prayerName),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   void _decrement(String key) => setState(() {
-    if ((_currentTotals[key] ?? 0) > 0) _currentTotals[key] = _currentTotals[key]! - 1;
+    if ((_currentTotals[key] ?? 0) > 0) {
+      _currentTotals[key] = _currentTotals[key]! - 1;
+    }
   });
 
   Future<void> _saveChanges() async {

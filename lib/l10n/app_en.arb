@@ -130,12 +130,16 @@
   "apple": "Apple",
   "continueAsGuest": "Continue as Guest",
   "editMissedPrayers": "Edit Missed Prayers",
+  "updateMissedPrayers": "Update Missed Prayers",
   "editLogs": "Edit Logged Prayers",
   "saveChanges": "Save Changes",
   "finish": "Finish",
   "youCannotExceed": "You cannot exceed the missed prayers count",
   "missedPrayersFor": "missed prayers for",
   "youAlreadyLoggedAll": "You already logged all {prayer} prayers ✅",
-  "youAlreadyLoggedAllDescription": "Shown when user reaches max logged prayers"
+  "youAlreadyLoggedAllDescription": "Shown when user reaches max logged prayers",
+  "validationError": "Validation Error",
+  "missedPrayersValidation": "You have completed {completed} prayers but are trying to set missed prayers to {missed}. You need to reset your data to proceed.",
+  "resetData": "Reset Data"
 
 }

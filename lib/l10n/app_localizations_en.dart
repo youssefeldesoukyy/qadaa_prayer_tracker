@@ -394,6 +394,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editMissedPrayers => 'Edit Missed Prayers';
 
   @override
+  String get updateMissedPrayers => 'Update Missed Prayers';
+
+  @override
   String get editLogs => 'Edit Logged Prayers';
 
   @override
@@ -416,4 +419,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get youAlreadyLoggedAllDescription =>
       'Shown when user reaches max logged prayers';
+
+  @override
+  String get validationError => 'Validation Error';
+
+  @override
+  String missedPrayersValidation(Object completed, Object missed) {
+    return 'You have completed $completed prayers but are trying to set missed prayers to $missed. You need to reset your data to proceed.';
+  }
+
+  @override
+  String get resetData => 'Reset Data';
 }

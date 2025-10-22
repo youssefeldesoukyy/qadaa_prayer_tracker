@@ -392,6 +392,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get editMissedPrayers => 'تعديل الصلوات الفائتة';
 
   @override
+  String get updateMissedPrayers => 'تحديث الصلوات الفائتة';
+
+  @override
   String get editLogs => 'تعديل الصلوات المنجزة';
 
   @override
@@ -414,4 +417,15 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get youAlreadyLoggedAllDescription =>
       'تظهر عندما يُسجل المستخدم كل الصلوات الفائتة';
+
+  @override
+  String get validationError => 'خطأ في التحقق';
+
+  @override
+  String missedPrayersValidation(Object completed, Object missed) {
+    return 'لقد أكملت $completed صلاة ولكن تحاول تعيين الصلوات الفائتة إلى $missed. تحتاج إلى إعادة تعيين بياناتك للمتابعة.';
+  }
+
+  @override
+  String get resetData => 'إعادة تعيين البيانات';
 }

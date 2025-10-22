@@ -129,11 +129,15 @@
   "apple": "آبل",
   "continueAsGuest": "المتابعة كضيف",
   "editMissedPrayers": "تعديل الصلوات الفائتة",
+  "updateMissedPrayers": "تحديث الصلوات الفائتة",
   "editLogs": "تعديل الصلوات المنجزة",
   "saveChanges": "حفظ التغييرات",
   "finish": "تنتهي",
   "youCannotExceed": "لا يمكنك تجاوز عدد الصلوات الفائتة",
   "missedPrayersFor": "الصلوات الفائتة لـ",
   "youAlreadyLoggedAll": "لقد قمت بتسجيل جميع صلوات {prayer} الفائتة ✅",
-  "youAlreadyLoggedAllDescription": "تظهر عندما يُسجل المستخدم كل الصلوات الفائتة"
+  "youAlreadyLoggedAllDescription": "تظهر عندما يُسجل المستخدم كل الصلوات الفائتة",
+  "validationError": "خطأ في التحقق",
+  "missedPrayersValidation": "لقد أكملت {completed} صلاة ولكن تحاول تعيين الصلوات الفائتة إلى {missed}. تحتاج إلى إعادة تعيين بياناتك للمتابعة.",
+  "resetData": "إعادة تعيين البيانات"
 }

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:qadaa_prayer_tracker/Views/Dashboard/home_dashboard.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'package:qadaa_prayer_tracker/Views/daily_plan.dart';
@@ -11,8 +10,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class QadaaMissed extends StatefulWidget {
   final bool fromGuest; // ✅ distinguish guest vs logged user
+  final DailyTotals? initialTotals; // ✅ Add initial data
+  final bool isEditing; // ✅ Add flag to distinguish editing vs creating
 
-  const QadaaMissed({super.key, this.fromGuest = false});
+  const QadaaMissed({super.key, this.fromGuest = false, this.initialTotals, this.isEditing = false});
 
   @override
   State<QadaaMissed> createState() => _QadaaMissedState();
@@ -33,6 +34,45 @@ class _QadaaMissedState extends State<QadaaMissed> {
   final _isha = TextEditingController();
 
   final _digitsOnly = [FilteringTextInputFormatter.digitsOnly];
+
+  @override
+  void initState() {
+    super.initState();
+    // ✅ Populate fields with existing data if available
+    if (widget.initialTotals != null) {
+      // ✅ Smart mode detection: if all values are equal, likely from time period
+      final allEqual = widget.initialTotals!.fajr == widget.initialTotals!.dhuhr &&
+                      widget.initialTotals!.dhuhr == widget.initialTotals!.asr &&
+                      widget.initialTotals!.asr == widget.initialTotals!.maghrib &&
+                      widget.initialTotals!.maghrib == widget.initialTotals!.isha;
+      
+      if (allEqual && widget.initialTotals!.fajr > 0) {
+        // Time period mode - only populate time fields
+        _convertToTimePeriod(widget.initialTotals!.fajr);
+        _mode = QadaMode.timePeriod;
+      } else {
+        // Manual mode - only populate manual fields
+        _fajr.text = widget.initialTotals!.fajr.toString();
+        _dhuhr.text = widget.initialTotals!.dhuhr.toString();
+        _asr.text = widget.initialTotals!.asr.toString();
+        _maghrib.text = widget.initialTotals!.maghrib.toString();
+        _isha.text = widget.initialTotals!.isha.toString();
+        _mode = QadaMode.manual;
+      }
+    }
+  }
+  
+  void _convertToTimePeriod(int totalDays) {
+    // Simple conversion: try to break down total days into years, months, days
+    final years = totalDays ~/ 365;
+    final remainingAfterYears = totalDays % 365;
+    final months = remainingAfterYears ~/ 30;
+    final days = remainingAfterYears % 30;
+    
+    _years.text = years.toString();
+    _months.text = months.toString();
+    _days.text = days.toString();
+  }
 
   @override
   void dispose() {
@@ -112,7 +152,7 @@ class _QadaaMissedState extends State<QadaaMissed> {
                   ),
                   onPressed: _onCreatePlanPressed,
                   child: Text(
-                    loc.createMyPlan,
+                    widget.isEditing ? loc.updateMissedPrayers : loc.createMyPlan,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -231,6 +271,14 @@ class _QadaaMissedState extends State<QadaaMissed> {
       final i = int.tryParse(_isha.text) ?? 0;
 
       totals = DailyTotals(fajr: f, dhuhr: d, asr: a, maghrib: m, isha: i);
+    }
+
+    // ✅ If editing, just return the updated totals
+    if (widget.isEditing) {
+      if (mounted) {
+        Navigator.pop(context, totals);
+      }
+      return;
     }
 
     final prefs = await SharedPreferences.getInstance();

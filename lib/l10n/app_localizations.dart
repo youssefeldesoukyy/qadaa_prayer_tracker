@@ -848,6 +848,12 @@ abstract class AppLocalizations {
   /// **'Edit Missed Prayers'**
   String get editMissedPrayers;
 
+  /// No description provided for @updateMissedPrayers.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Missed Prayers'**
+  String get updateMissedPrayers;
+
   /// No description provided for @editLogs.
   ///
   /// In en, this message translates to:
@@ -889,6 +895,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shown when user reaches max logged prayers'**
   String get youAlreadyLoggedAllDescription;
+
+  /// No description provided for @validationError.
+  ///
+  /// In en, this message translates to:
+  /// **'Validation Error'**
+  String get validationError;
+
+  /// No description provided for @missedPrayersValidation.
+  ///
+  /// In en, this message translates to:
+  /// **'You have completed {completed} prayers but are trying to set missed prayers to {missed}. You need to reset your data to proceed.'**
+  String missedPrayersValidation(Object completed, Object missed);
+
+  /// No description provided for @resetData.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Data'**
+  String get resetData;
 }
 
 class _AppLocalizationsDelegate

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/Views/Dashboard/settings_dashboard.dart';
@@ -42,12 +43,25 @@ class _HomeDashboardState extends State<HomeDashboard>
   }
 
   void _refreshStats() => setState(() {});
+  
+  // ✅ Reload data from storage when called from settings
+  void _reloadData() async {
+    await _loadUserOrGuestData();
+  }
 
   Future<void> _loadUserOrGuestData() async {
     final prefs = await SharedPreferences.getInstance();
     _isGuest = prefs.getBool('isGuest') ?? false;
 
     if (_isGuest) {
+      // ✅ Reload guest totals from SharedPreferences
+      final totalsString = prefs.getString('guestTotals');
+      if (totalsString != null) {
+        final totalsJson = jsonDecode(totalsString);
+        _initial = DailyTotals.fromJson(totalsJson);
+        debugPrint('🔄 Guest missed prayers reloaded: $_initial');
+      }
+      
       final logsString = prefs.getString('guestLogs');
       if (logsString != null) {
         _guestLogs = jsonDecode(logsString);
@@ -97,6 +111,9 @@ class _HomeDashboardState extends State<HomeDashboard>
             maghrib: missed['maghrib'] ?? 0,
             isha: missed['isha'] ?? 0,
           );
+          
+          // ✅ Print current missed prayers object
+          debugPrint('🏠 Home Dashboard - Current Missed Prayers: $_initial');
 
           _remaining = DailyTotals(
             fajr: (_initial.fajr - loggedFajr).clamp(0, _initial.fajr),
@@ -313,7 +330,7 @@ class _HomeDashboardState extends State<HomeDashboard>
       barrierColor: Colors.black.withOpacity(0.4),
       transitionDuration: const Duration(milliseconds: 200),
       pageBuilder: (ctx, _, __) {
-        Future.delayed(const Duration(seconds: 2), () {
+        Future.delayed(const Duration(milliseconds: 750), () {
           if (Navigator.of(ctx).canPop()) Navigator.of(ctx).pop();
         });
         return Center(
@@ -349,7 +366,7 @@ class _HomeDashboardState extends State<HomeDashboard>
     final loc = AppLocalizations.of(context)!;
     if (_isLoading) return const Center(child: CircularProgressIndicator());
 
-    final percentText = '${(_progress * 100).toStringAsFixed(0)}%';
+    final percentText = '${(_progress * 100).floor()}%';
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -546,7 +563,7 @@ class _HomeDashboardState extends State<HomeDashboard>
     initial: _initial,
     remaining: _remaining,
     perDay: widget.perDay,
-    onDataChanged: _loadUserOrGuestData,
+    onDataChanged: _reloadData,
   );
 
   @override

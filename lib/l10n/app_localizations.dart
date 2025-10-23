@@ -902,11 +902,47 @@ abstract class AppLocalizations {
   /// **'Validation Error'**
   String get validationError;
 
-  /// No description provided for @missedPrayersValidation.
+  /// No description provided for @validationIntro.
   ///
   /// In en, this message translates to:
-  /// **'You have completed {completed} prayers but are trying to set missed prayers to {missed}. You need to reset your data to proceed.'**
-  String missedPrayersValidation(Object completed, Object missed);
+  /// **'You have completed more prayers than missed for:'**
+  String get validationIntro;
+
+  /// No description provided for @validationFajr.
+  ///
+  /// In en, this message translates to:
+  /// **'Fajr: {completed} completed but only {missed} missed'**
+  String validationFajr(Object completed, Object missed);
+
+  /// No description provided for @validationDhuhr.
+  ///
+  /// In en, this message translates to:
+  /// **'Dhuhr: {completed} completed but only {missed} missed'**
+  String validationDhuhr(Object completed, Object missed);
+
+  /// No description provided for @validationAsr.
+  ///
+  /// In en, this message translates to:
+  /// **'Asr: {completed} completed but only {missed} missed'**
+  String validationAsr(Object completed, Object missed);
+
+  /// No description provided for @validationMaghrib.
+  ///
+  /// In en, this message translates to:
+  /// **'Maghrib: {completed} completed but only {missed} missed'**
+  String validationMaghrib(Object completed, Object missed);
+
+  /// No description provided for @validationIsha.
+  ///
+  /// In en, this message translates to:
+  /// **'Isha: {completed} completed but only {missed} missed'**
+  String validationIsha(Object completed, Object missed);
+
+  /// No description provided for @validationOutro.
+  ///
+  /// In en, this message translates to:
+  /// **'You need to reset your data to proceed.'**
+  String get validationOutro;
 
   /// No description provided for @resetData.
   ///

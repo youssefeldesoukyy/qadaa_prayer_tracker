@@ -139,7 +139,44 @@
   "youAlreadyLoggedAll": "You already logged all {prayer} prayers ✅",
   "youAlreadyLoggedAllDescription": "Shown when user reaches max logged prayers",
   "validationError": "Validation Error",
-  "missedPrayersValidation": "You have completed {completed} prayers but are trying to set missed prayers to {missed}. You need to reset your data to proceed.",
+  "validationIntro": "You have completed more prayers than missed for:",
+  "validationFajr": "Fajr: {completed} completed but only {missed} missed",
+  "@validationFajr": {
+    "placeholders": {
+      "completed": {},
+      "missed": {}
+    }
+  },
+  "validationDhuhr": "Dhuhr: {completed} completed but only {missed} missed",
+  "@validationDhuhr": {
+    "placeholders": {
+      "completed": {},
+      "missed": {}
+    }
+  },
+  "validationAsr": "Asr: {completed} completed but only {missed} missed",
+  "@validationAsr": {
+    "placeholders": {
+      "completed": {},
+      "missed": {}
+    }
+  },
+  "validationMaghrib": "Maghrib: {completed} completed but only {missed} missed",
+  "@validationMaghrib": {
+    "placeholders": {
+      "completed": {},
+      "missed": {}
+    }
+  },
+  "validationIsha": "Isha: {completed} completed but only {missed} missed",
+  "@validationIsha": {
+    "placeholders": {
+      "completed": {},
+      "missed": {}
+    }
+  },
+
+  "validationOutro": "You need to reset your data to proceed.",
   "resetData": "Reset Data"
 
 }

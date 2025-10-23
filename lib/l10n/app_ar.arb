@@ -138,6 +138,48 @@
   "youAlreadyLoggedAll": "لقد قمت بتسجيل جميع صلوات {prayer} الفائتة ✅",
   "youAlreadyLoggedAllDescription": "تظهر عندما يُسجل المستخدم كل الصلوات الفائتة",
   "validationError": "خطأ في التحقق",
-  "missedPrayersValidation": "لقد أكملت {completed} صلاة ولكن تحاول تعيين الصلوات الفائتة إلى {missed}. تحتاج إلى إعادة تعيين بياناتك للمتابعة.",
+  "validationIntro": "لقد أكملت صلوات أكثر مما فاتك في:",
+  "validationOutro": "يجب عليك إعادة ضبط البيانات للمتابعة.",
+
+  "validationFajr": "الفجر: تم إكمال {completed} بينما عدد الفوائت {missed}",
+  "@validationFajr": {
+    "placeholders": {
+      "completed": {},
+      "missed": {}
+    }
+  },
+
+  "validationDhuhr": "الظهر: تم إكمال {completed} بينما عدد الفوائت {missed}",
+  "@validationDhuhr": {
+    "placeholders": {
+      "completed": {},
+      "missed": {}
+    }
+  },
+
+  "validationAsr": "العصر: تم إكمال {completed} بينما عدد الفوائت {missed}",
+  "@validationAsr": {
+    "placeholders": {
+      "completed": {},
+      "missed": {}
+    }
+  },
+
+  "validationMaghrib": "المغرب: تم إكمال {completed} بينما عدد الفوائت {missed}",
+  "@validationMaghrib": {
+    "placeholders": {
+      "completed": {},
+      "missed": {}
+    }
+  },
+
+  "validationIsha": "العشاء: تم إكمال {completed} بينما عدد الفوائت {missed}",
+  "@validationIsha": {
+    "placeholders": {
+      "completed": {},
+      "missed": {}
+    }
+  },
+
   "resetData": "إعادة تعيين البيانات"
 }

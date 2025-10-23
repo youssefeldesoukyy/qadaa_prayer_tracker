@@ -422,9 +422,35 @@ class AppLocalizationsAr extends AppLocalizations {
   String get validationError => 'خطأ في التحقق';
 
   @override
-  String missedPrayersValidation(Object completed, Object missed) {
-    return 'لقد أكملت $completed صلاة ولكن تحاول تعيين الصلوات الفائتة إلى $missed. تحتاج إلى إعادة تعيين بياناتك للمتابعة.';
+  String get validationIntro => 'لقد أكملت صلوات أكثر مما فاتك في:';
+
+  @override
+  String validationFajr(Object completed, Object missed) {
+    return 'الفجر: تم إكمال $completed بينما عدد الفوائت $missed';
   }
+
+  @override
+  String validationDhuhr(Object completed, Object missed) {
+    return 'الظهر: تم إكمال $completed بينما عدد الفوائت $missed';
+  }
+
+  @override
+  String validationAsr(Object completed, Object missed) {
+    return 'العصر: تم إكمال $completed بينما عدد الفوائت $missed';
+  }
+
+  @override
+  String validationMaghrib(Object completed, Object missed) {
+    return 'المغرب: تم إكمال $completed بينما عدد الفوائت $missed';
+  }
+
+  @override
+  String validationIsha(Object completed, Object missed) {
+    return 'العشاء: تم إكمال $completed بينما عدد الفوائت $missed';
+  }
+
+  @override
+  String get validationOutro => 'يجب عليك إعادة ضبط البيانات للمتابعة.';
 
   @override
   String get resetData => 'إعادة تعيين البيانات';

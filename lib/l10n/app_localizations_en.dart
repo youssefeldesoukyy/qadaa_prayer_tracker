@@ -424,9 +424,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get validationError => 'Validation Error';
 
   @override
-  String missedPrayersValidation(Object completed, Object missed) {
-    return 'You have completed $completed prayers but are trying to set missed prayers to $missed. You need to reset your data to proceed.';
+  String get validationIntro =>
+      'You have completed more prayers than missed for:';
+
+  @override
+  String validationFajr(Object completed, Object missed) {
+    return 'Fajr: $completed completed but only $missed missed';
   }
+
+  @override
+  String validationDhuhr(Object completed, Object missed) {
+    return 'Dhuhr: $completed completed but only $missed missed';
+  }
+
+  @override
+  String validationAsr(Object completed, Object missed) {
+    return 'Asr: $completed completed but only $missed missed';
+  }
+
+  @override
+  String validationMaghrib(Object completed, Object missed) {
+    return 'Maghrib: $completed completed but only $missed missed';
+  }
+
+  @override
+  String validationIsha(Object completed, Object missed) {
+    return 'Isha: $completed completed but only $missed missed';
+  }
+
+  @override
+  String get validationOutro => 'You need to reset your data to proceed.';
 
   @override
   String get resetData => 'Reset Data';

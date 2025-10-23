@@ -303,31 +303,48 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
 
   // ✅ Build validation message showing which prayer types have issues
   String _buildValidationMessage(
-      Map<String, int> completedCounts, DailyTotals missedTotals) {
+      Map<String, int> completedCounts,
+      DailyTotals missedTotals,
+      ) {
+    final loc = AppLocalizations.of(context)!;
     final issues = <String>[];
 
     if (missedTotals.fajr < completedCounts['fajr']!) {
-      issues.add(
-          'Fajr: ${completedCounts['fajr']} completed but only ${missedTotals.fajr} missed');
-    }
-    if (missedTotals.dhuhr < completedCounts['dhuhr']!) {
-      issues.add(
-          'Dhuhr: ${completedCounts['dhuhr']} completed but only ${missedTotals.dhuhr} missed');
-    }
-    if (missedTotals.asr < completedCounts['asr']!) {
-      issues.add(
-          'Asr: ${completedCounts['asr']} completed but only ${missedTotals.asr} missed');
-    }
-    if (missedTotals.maghrib < completedCounts['maghrib']!) {
-      issues.add(
-          'Maghrib: ${completedCounts['maghrib']} completed but only ${missedTotals.maghrib} missed');
-    }
-    if (missedTotals.isha < completedCounts['isha']!) {
-      issues.add(
-          'Isha: ${completedCounts['isha']} completed but only ${missedTotals.isha} missed');
+      issues.add(loc.validationFajr(
+        completedCounts['fajr']!,
+        missedTotals.fajr,
+      ));
     }
 
-    return 'You have completed more prayers than missed for:\n\n${issues.join('\n')}\n\nYou need to reset your data to proceed.';
+    if (missedTotals.dhuhr < completedCounts['dhuhr']!) {
+      issues.add(loc.validationDhuhr(
+        completedCounts['dhuhr']!,
+        missedTotals.dhuhr,
+      ));
+    }
+
+    if (missedTotals.asr < completedCounts['asr']!) {
+      issues.add(loc.validationAsr(
+        completedCounts['asr']!,
+        missedTotals.asr,
+      ));
+    }
+
+    if (missedTotals.maghrib < completedCounts['maghrib']!) {
+      issues.add(loc.validationMaghrib(
+        completedCounts['maghrib']!,
+        missedTotals.maghrib,
+      ));
+    }
+
+    if (missedTotals.isha < completedCounts['isha']!) {
+      issues.add(loc.validationIsha(
+        completedCounts['isha']!,
+        missedTotals.isha,
+      ));
+    }
+
+    return '${loc.validationIntro}\n\n${issues.join('\n')}\n\n${loc.validationOutro}';
   }
 
   // ✅ Save missed prayers to storage (Firestore or SharedPreferences)

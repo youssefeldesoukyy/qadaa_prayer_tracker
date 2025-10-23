@@ -59,6 +59,24 @@ class _DailyPlanState extends State<DailyPlan> {
 
   int _int(TextEditingController c) => int.tryParse(c.text.trim()) ?? 0;
 
+  /// 🕌 Get localized name for each prayer
+  String _localizedPrayerName(String key, AppLocalizations loc) {
+    switch (key) {
+      case 'fajr':
+        return loc.fajr;
+      case 'dhuhr':
+        return loc.dhuhr;
+      case 'asr':
+        return loc.asr;
+      case 'maghrib':
+        return loc.maghrib;
+      case 'isha':
+        return loc.isha;
+      default:
+        return key;
+    }
+  }
+
   Future<void> _saveAndGo() async {
     final loc = AppLocalizations.of(context)!;
 
@@ -92,11 +110,16 @@ class _DailyPlanState extends State<DailyPlan> {
       final key = entry.key;
       final value = entry.value;
       final maxAllowed = remaining[key] ?? 0;
+
       if (value > maxAllowed) {
+        final prayerName = _localizedPrayerName(key, loc);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              "${key[0].toUpperCase()}${key.substring(1)} can't exceed $maxAllowed",
+              loc.validationCantExceed(
+                prayerName,
+                maxAllowed.toString(),
+              ),
             ),
           ),
         );
@@ -151,8 +174,10 @@ class _DailyPlanState extends State<DailyPlan> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) =>
-                HomeDashboard(initial: widget.totals, perDay: perDay),
+            builder: (_) => HomeDashboard(
+              initial: widget.totals,
+              perDay: perDay,
+            ),
           ),
         );
       }
@@ -162,13 +187,8 @@ class _DailyPlanState extends State<DailyPlan> {
   /// 🔹 Save guest plan locally (JSON-based, consistent with main.dart)
   Future<void> _saveDailyPlanLocally(Map<String, int> dailyPlan) async {
     final prefs = await SharedPreferences.getInstance();
-
-    // Save per-day plan in one JSON blob
     await prefs.setString('guestPerDay', jsonEncode(dailyPlan));
-
-    // Mark guest as no longer first-time
     await prefs.setBool('isGuestFirstTime', false);
-
     debugPrint('✅ Daily plan saved locally for guest user');
   }
 
@@ -199,9 +219,13 @@ class _DailyPlanState extends State<DailyPlan> {
         children: [
           Row(
             children: [
-              Text(label,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 16)),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
               const Spacer(),
               Text(
                 '$remaining ${loc.remaining}',
@@ -249,10 +273,9 @@ class _DailyPlanState extends State<DailyPlan> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            // remove the outer padding that caused it to stick at top
             child: Container(
               constraints: const BoxConstraints(maxWidth: 500),
-              margin: const EdgeInsets.all(16), // slight margin from edges
+              margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Colors.white,

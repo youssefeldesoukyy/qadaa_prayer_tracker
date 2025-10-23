@@ -5,12 +5,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'package:qadaa_prayer_tracker/Views/Dashboard/home_dashboard.dart';
-import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/Views/qadaa_missed.dart';
 import 'package:qadaa_prayer_tracker/Views/sign_up_screen.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -28,7 +29,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // ✅ Normal Email/Password Sign In
+  // ✅ Email / Password Sign In
   Future<void> _signIn() async {
     final loc = AppLocalizations.of(context)!;
 
@@ -46,7 +47,6 @@ class _SignInScreenState extends State<SignInScreen> {
       await _navigateAfterSignIn(userCredential.user);
     } on FirebaseAuthException catch (e) {
       String errorMessage = loc.loginFailed;
-
       if (e.code == 'user-not-found' || e.code == 'wrong-password') {
         errorMessage = loc.invalidCredentials;
       } else if (e.code == 'invalid-email') {
@@ -66,18 +66,14 @@ class _SignInScreenState extends State<SignInScreen> {
   // ✅ Google Sign-In
   Future<void> _signInWithGoogle() async {
     final loc = AppLocalizations.of(context)!;
-
     try {
       setState(() => _isLoading = true);
-      final GoogleSignIn googleSignIn = GoogleSignIn(scopes: ['email']);
-      await googleSignIn.signOut(); // force re-pick each time
-
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      final googleSignIn = GoogleSignIn(scopes: ['email']);
+      await googleSignIn.signOut(); // Force fresh selection
+      final googleUser = await googleSignIn.signIn();
       if (googleUser == null) return;
 
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-
+      final googleAuth = await googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
@@ -93,7 +89,6 @@ class _SignInScreenState extends State<SignInScreen> {
       final doc = await userRef.get();
 
       if (!doc.exists) {
-        // Create minimal new user record
         final displayName = user.displayName ?? '';
         final parts = displayName.split(' ');
         final firstName = parts.isNotEmpty ? parts.first : '';
@@ -116,7 +111,6 @@ class _SignInScreenState extends State<SignInScreen> {
         return;
       }
 
-      // Existing user → go to HomeDashboard
       await _navigateAfterSignIn(user);
     } catch (e) {
       debugPrint('Google sign-in error: $e');
@@ -128,20 +122,17 @@ class _SignInScreenState extends State<SignInScreen> {
     }
   }
 
-  // ✅ Apple Sign-In (iOS only)
+  // ✅ Apple Sign-In
   Future<void> _signInWithApple() async {
     final loc = AppLocalizations.of(context)!;
-
-    // 🔒 Disable the button immediately
     if (_isLoading) return;
 
     setState(() => _isLoading = true);
-
     try {
       final appleCredential = await SignInWithApple.getAppleIDCredential(
         scopes: [
           AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
+          AppleIDAuthorizationScopes.fullName
         ],
       );
 
@@ -151,21 +142,17 @@ class _SignInScreenState extends State<SignInScreen> {
       );
 
       final userCredential =
-      await FirebaseAuth.instance.signInWithCredential(oauthCredential);
+          await FirebaseAuth.instance.signInWithCredential(oauthCredential);
 
       await _navigateAfterSignIn(userCredential.user);
     } catch (e) {
       debugPrint('Apple sign-in error: $e');
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   SnackBar(content: Text(loc.appleSignInFailed)),
-      // );
     } finally {
-      // 🔓 Re-enable after everything is done
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  // ✅ Guest Sign-In (local only)
+  // ✅ Guest Sign-In
   Future<void> _continueAsGuest() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -176,7 +163,6 @@ class _SignInScreenState extends State<SignInScreen> {
     final isFirstTime = prefs.getBool('isGuestFirstTime') ?? true;
 
     if (isFirstTime) {
-      // 🆕 First-time guest
       await prefs.setBool('isGuestFirstTime', true);
       if (mounted) {
         Navigator.pushReplacement(
@@ -187,7 +173,6 @@ class _SignInScreenState extends State<SignInScreen> {
       return;
     }
 
-    // 🟢 Returning guest
     final totalsData = prefs.getString('guestTotals');
     final perDayData = prefs.getString('guestPerDay');
 
@@ -206,7 +191,6 @@ class _SignInScreenState extends State<SignInScreen> {
         );
       }
     } else {
-      // Fallback: go to setup again
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -216,12 +200,14 @@ class _SignInScreenState extends State<SignInScreen> {
     }
   }
 
-  // ✅ Shared function for navigating after Firebase login
+  // ✅ Post-login Navigation
   Future<void> _navigateAfterSignIn(User? user) async {
     if (user == null) return;
-    final firestore = FirebaseFirestore.instance;
-    final doc = await firestore.collection('Users').doc(user.uid).get();
 
+    final doc = await FirebaseFirestore.instance
+        .collection('Users')
+        .doc(user.uid)
+        .get();
     if (!doc.exists) {
       if (mounted) {
         Navigator.pushReplacement(
@@ -248,7 +234,6 @@ class _SignInScreenState extends State<SignInScreen> {
     final missedPrayers =
         Map<String, dynamic>.from(prayerPlan['missedPrayers'] ?? {});
     final totals = DailyTotals.fromMap(missedPrayers);
-
     final dailyPlanRaw = prayerPlan['dailyPlan'] as Map<String, dynamic>? ?? {};
     final perDay =
         dailyPlanRaw.map((key, value) => MapEntry(key, (value as num).toInt()));
@@ -279,8 +264,6 @@ class _SignInScreenState extends State<SignInScreen> {
             cursorColor: const Color(0xFF2563EB),
             decoration: InputDecoration(
               labelText: loc.emailLabel,
-              labelStyle: const TextStyle(color: Colors.black54),
-              floatingLabelStyle: const TextStyle(color: Color(0xFF2563EB)),
               border: const OutlineInputBorder(),
               focusedBorder: const OutlineInputBorder(
                 borderSide: BorderSide(color: Color(0xFF2563EB), width: 2),
@@ -327,236 +310,229 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  // ✅ UI
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 600),
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  loc.appTitle,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Color(0xFF2563EB),
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  loc.signInSubtitle,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.black54),
-                ),
-                const SizedBox(height: 32),
-                // Email & Password fields
-                TextField(
-                  controller: _emailOrPhoneController,
-                  cursorColor: const Color(0xFF2563EB),
-                  decoration: InputDecoration(
-                    labelText: loc.emailLabel,
-                    labelStyle: const TextStyle(color: Colors.black54),
-                    floatingLabelStyle:
-                        const TextStyle(color: Color(0xFF2563EB)),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide:
-                          const BorderSide(color: Color(0xFF2563EB), width: 2),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.grey.shade400),
-                    ),
-                    prefixIcon: const Icon(Icons.person_outline),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  cursorColor: const Color(0xFF2563EB),
-                  decoration: InputDecoration(
-                    labelText: loc.passwordLabel,
-                    labelStyle: const TextStyle(color: Colors.black54),
-                    floatingLabelStyle:
-                        const TextStyle(color: Color(0xFF2563EB)),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide:
-                          const BorderSide(color: Color(0xFF2563EB), width: 2),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.grey.shade400),
-                    ),
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                // Error Message
-                if (_errorMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Text(
-                      _errorMessage!,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ),
-                // Sign In button
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _signIn,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size.fromHeight(50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 22,
-                          width: 22,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : Text(loc.signIn,
-                          style: const TextStyle(fontWeight: FontWeight.w600)),
-                ),
-                const SizedBox(height: 20),
-                // 🔹 Social Sign-In Row (Google + Apple)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _isLoading ? null : _signInWithGoogle,
-                        icon: SvgPicture.asset(
-                          "assets/icons/google.svg",
-                          height: 24,
-                        ),
-                        label: Text(
-                          loc.google,
-                          style: const TextStyle(color: Colors.black54),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size.fromHeight(50),
-                          side: const BorderSide(color: Colors.grey),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _isLoading ? null : _signInWithApple,
-                        icon: SvgPicture.asset(
-                          "assets/icons/apple.svg",
-                          height: 24,
-                        ),
-                        label: Text(
-                          loc.apple,
-                          style: const TextStyle(color: Colors.black54),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size.fromHeight(50),
-                          side: const BorderSide(color: Colors.grey),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
+      body: Stack(
+        children: [
+          // 🧩 Main Content
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 600),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade200),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                OutlinedButton(
-                  onPressed: _isLoading ? null : _continueAsGuest,
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(50),
-                    side: const BorderSide(color: Colors.grey),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: Text(
-                    loc.continueAsGuest,
-                    style: const TextStyle(color: Color(0xFF2563EB)),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                TextButton(
-                  onPressed: _resetPassword,
-                  child: Text(loc.forgotPassword,
-                      style: const TextStyle(color: Color(0xFF2563EB))),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      loc.noAccount,
+                      loc.appTitle,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Color(0xFF2563EB),
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      loc.signInSubtitle,
+                      textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.black54),
                     ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const SignUpScreen()),
-                        );
-                      },
-                      child: Text(
-                        loc.signUp,
-                        style: const TextStyle(
-                          color: Color(0xFF2563EB),
-                          fontWeight: FontWeight.bold,
+                    const SizedBox(height: 32),
+
+                    // Email field
+                    TextField(
+                      controller: _emailOrPhoneController,
+                      cursorColor: const Color(0xFF2563EB),
+                      decoration: InputDecoration(
+                        labelText: loc.emailLabel,
+                        labelStyle: const TextStyle(color: Color(0xFF2563EB)),
+                        prefixIcon: const Icon(Icons.person_outline),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF2563EB),
+                            width: 2,
+                          ),
                         ),
                       ),
                     ),
+                    const SizedBox(height: 16),
+
+                    // Password field
+                    TextField(
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      cursorColor: const Color(0xFF2563EB),
+                      decoration: InputDecoration(
+                        labelText: loc.passwordLabel,
+                        labelStyle: const TextStyle(color: Color(0xFF2563EB)),
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                          ),
+                          onPressed: () => setState(
+                              () => _obscurePassword = !_obscurePassword),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF2563EB),
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    if (_errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Text(
+                          _errorMessage!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ),
+
+                    ElevatedButton(
+                      onPressed: _isLoading ? null : _signIn,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        loc.signIn,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Social buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _isLoading ? null : _signInWithGoogle,
+                            icon: SvgPicture.asset(
+                              "assets/icons/google.svg",
+                              height: 24,
+                            ),
+                            label: Text(loc.google),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(50),
+                              side: const BorderSide(color: Colors.grey),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _isLoading ? null : _signInWithApple,
+                            icon: SvgPicture.asset(
+                              "assets/icons/apple.svg",
+                              height: 24,
+                            ),
+                            label: Text(loc.apple),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(50),
+                              side: const BorderSide(color: Colors.grey),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    OutlinedButton(
+                      onPressed: _isLoading ? null : _continueAsGuest,
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(50),
+                        side: const BorderSide(color: Colors.grey),
+                      ),
+                      child: Text(
+                        loc.continueAsGuest,
+                        style: const TextStyle(color: Color(0xFF2563EB)),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    TextButton(
+                      onPressed: _resetPassword,
+                      child: Text(loc.forgotPassword,
+                          style: const TextStyle(color: Color(0xFF2563EB))),
+                    ),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(loc.noAccount,
+                            style: const TextStyle(color: Colors.black54)),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const SignUpScreen()),
+                            );
+                          },
+                          child: Text(
+                            loc.signUp,
+                            style: const TextStyle(
+                              color: Color(0xFF2563EB),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+
+          // 🌀 Full-screen loading overlay
+          if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.4),
+              child: const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

@@ -181,5 +181,18 @@
     }
   },
 
-  "resetData": "إعادة تعيين البيانات"
+  "resetData": "إعادة تعيين البيانات",
+
+  "validationCantExceed": "لا يمكن أن يتجاوز {prayer} {max}",
+  "@validationCantExceed": {
+    "description": "يظهر عند إدخال رقم خطة يومية أكبر من العدد المتبقي",
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -454,4 +454,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get resetData => 'إعادة تعيين البيانات';
+
+  @override
+  String validationCantExceed(String prayer, String max) {
+    return 'لا يمكن أن يتجاوز $prayer $max';
+  }
 }

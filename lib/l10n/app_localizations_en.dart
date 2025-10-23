@@ -457,4 +457,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get resetData => 'Reset Data';
+
+  @override
+  String validationCantExceed(String prayer, String max) {
+    return '$prayer can\'t exceed $max';
+  }
 }

@@ -177,6 +177,18 @@
   },
 
   "validationOutro": "You need to reset your data to proceed.",
-  "resetData": "Reset Data"
+  "resetData": "Reset Data",
 
+  "validationCantExceed": "{prayer} can't exceed {max}",
+  "@validationCantExceed": {
+    "description": "Shown when user enters a daily plan number greater than remaining count.",
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  }
 }

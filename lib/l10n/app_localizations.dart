@@ -949,6 +949,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reset Data'**
   String get resetData;
+
+  /// Shown when user enters a daily plan number greater than remaining count.
+  ///
+  /// In en, this message translates to:
+  /// **'{prayer} can\'t exceed {max}'**
+  String validationCantExceed(String prayer, String max);
 }
 
 class _AppLocalizationsDelegate

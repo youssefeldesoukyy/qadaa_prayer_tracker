@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:qadaa_prayer_tracker/Views/sign_in_screen.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'package:qadaa_prayer_tracker/Views/daily_plan.dart';
 import 'package:qadaa_prayer_tracker/Views/qadaa_missed.dart';
+import 'package:qadaa_prayer_tracker/views/registration/sign_in_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:qadaa_prayer_tracker/Views/Dashboard/edit_logged_prayers.dart';
+import 'package:qadaa_prayer_tracker/views/edit_logged_prayers.dart';
 import 'package:qadaa_prayer_tracker/core/services/dashboard_service.dart';
 
 class SettingsDashboard extends StatefulWidget {

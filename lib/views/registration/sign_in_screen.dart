@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
 import 'package:qadaa_prayer_tracker/core/services/auth_exceptions.dart';
 import 'package:qadaa_prayer_tracker/core/services/auth_flow_result.dart';
 import 'package:qadaa_prayer_tracker/core/services/auth_service.dart';
 import 'package:qadaa_prayer_tracker/Views/Dashboard/home_dashboard.dart';
 import 'package:qadaa_prayer_tracker/Views/qadaa_missed.dart';
-import 'package:qadaa_prayer_tracker/Views/sign_up_screen.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
+import 'package:qadaa_prayer_tracker/views/registration/sign_up_screen.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});

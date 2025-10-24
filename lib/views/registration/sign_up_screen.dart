@@ -133,195 +133,219 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   InputDecoration _inputDecoration(String label, IconData icon) {
+    const themeColor = Color(0xFF2563EB);
+    final border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(18),
+      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+    );
+
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: Colors.black54),
-      floatingLabelStyle: const TextStyle(color: Color(0xFF2563EB)),
-      prefixIcon: Icon(icon),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: Colors.grey.shade400),
+      labelStyle: const TextStyle(fontSize: 13, color: Color(0xFF475569)),
+      floatingLabelStyle: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: themeColor,
       ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFF2563EB), width: 2),
+      prefixIcon: Icon(icon, color: const Color(0xFF475569)),
+      filled: true,
+      fillColor: const Color(0xFFF8FBFF),
+      enabledBorder: border,
+      focusedBorder: border.copyWith(
+        borderSide: const BorderSide(color: themeColor, width: 2),
       ),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    const themeColor = Color(0xFF2563EB);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
       body: Stack(
         children: [
-          Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 600),
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade200),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      loc.appTitle,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Color(0xFF2563EB),
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      loc.signUpSubtitle,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.black54),
-                    ),
-                    const SizedBox(height: 32),
-
-                    // First + Last Name
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _firstNameController,
-                            cursorColor: const Color(0xFF2563EB),
-                            decoration: _inputDecoration(loc.firstName, Icons.person_outline),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: TextField(
-                            controller: _lastNameController,
-                            cursorColor: const Color(0xFF2563EB),
-                            decoration: _inputDecoration(loc.lastName, Icons.person_outline),
-                          ),
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/sign_in_background.jpg',
+              fit: BoxFit.cover,
+            ),
+          ),
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 460),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(40),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 40,
+                          offset: const Offset(0, 18),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-
-                    // Phone
-                    TextField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                      cursorColor: const Color(0xFF2563EB),
-                      decoration: _inputDecoration(loc.phoneNumber, Icons.phone_outlined),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Email
-                    TextField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      cursorColor: const Color(0xFF2563EB),
-                      decoration: _inputDecoration(loc.emailLabel, Icons.email_outlined),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Password
-                    TextField(
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      cursorColor: const Color(0xFF2563EB),
-                      decoration: _inputDecoration(loc.passwordLabel, Icons.lock_outline).copyWith(
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                          ),
-                          onPressed: () =>
-                              setState(() => _obscurePassword = !_obscurePassword),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Confirm Password
-                    TextField(
-                      controller: _confirmPasswordController,
-                      obscureText: _obscureConfirmPassword,
-                      cursorColor: const Color(0xFF2563EB),
-                      decoration:
-                          _inputDecoration(loc.confirmPassword, Icons.lock_outline).copyWith(
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureConfirmPassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                          ),
-                          onPressed: () => setState(() =>
-                              _obscureConfirmPassword = !_obscureConfirmPassword),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    ElevatedButton(
-                      onPressed: _isLoading ? null : _signUpUser,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2563EB),
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size.fromHeight(50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        loc.signUp,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          loc.alreadyHaveAccount,
+                          loc.signUpWelcome,
                           style: const TextStyle(
-                            color: Colors.black54,
-                            fontSize: 15,
+                            color: Color(0xFF0F172A),
+                            fontSize: 28,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.2,
                           ),
                         ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text(
-                            loc.signIn,
-                            style: const TextStyle(
-                              color: Color(0xFF2563EB),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
+                        const SizedBox(height: 8),
+                        Text(
+                          loc.signUpTagline,
+                          style: const TextStyle(
+                            color: Color(0xFF475569),
+                            fontSize: 15,
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _firstNameController,
+                                cursorColor: themeColor,
+                                decoration: _inputDecoration(
+                                    loc.firstName, Icons.person_outline_rounded),
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: TextField(
+                                controller: _lastNameController,
+                                cursorColor: themeColor,
+                                decoration: _inputDecoration(
+                                    loc.lastName, Icons.person_outline_rounded),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _phoneController,
+                          keyboardType: TextInputType.phone,
+                          cursorColor: themeColor,
+                          decoration: _inputDecoration(
+                              loc.phoneNumber, Icons.call_outlined),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          cursorColor: themeColor,
+                          decoration: _inputDecoration(
+                              loc.emailLabel, Icons.mail_outline_rounded),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _passwordController,
+                          obscureText: _obscurePassword,
+                          cursorColor: themeColor,
+                          decoration: _inputDecoration(
+                              loc.passwordLabel, Icons.lock_outline_rounded)
+                              .copyWith(
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: const Color(0xFF475569),
+                              ),
+                              onPressed: () => setState(
+                                  () => _obscurePassword = !_obscurePassword),
                             ),
                           ),
                         ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _confirmPasswordController,
+                          obscureText: _obscureConfirmPassword,
+                          cursorColor: themeColor,
+                          decoration: _inputDecoration(
+                              loc.confirmPassword, Icons.lock_outline_rounded)
+                              .copyWith(
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureConfirmPassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: const Color(0xFF475569),
+                              ),
+                              onPressed: () => setState(() =>
+                                  _obscureConfirmPassword =
+                                      !_obscureConfirmPassword),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _signUpUser,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 18),
+                              shape: const StadiumBorder(),
+                              backgroundColor: themeColor,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: Text(
+                              loc.signUp,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              loc.alreadyHaveAccount,
+                              style: const TextStyle(
+                                color: Color(0xFF64748B),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text(
+                                loc.signIn,
+                                style: const TextStyle(
+                                  color: themeColor,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
           if (_isLoading)
             Container(
-              color: Colors.black.withOpacity(0.4),
+              color: Colors.black.withValues(alpha: 0.35),
               child: const Center(
                 child: CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),

@@ -662,6 +662,24 @@ abstract class AppLocalizations {
   /// **'or'**
   String get or;
 
+  /// No description provided for @orContinueWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Or continue with'**
+  String get orContinueWith;
+
+  /// No description provided for @signInWelcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Qadaa Tracker 👋'**
+  String get signInWelcome;
+
+  /// No description provided for @signInTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Track your missed prayers effortlessly.'**
+  String get signInTagline;
+
   /// No description provided for @forgotPassword.
   ///
   /// In en, this message translates to:
@@ -679,6 +697,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign Up'**
   String get signUp;
+
+  /// No description provided for @signUpWelcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your Qadaa Tracker account ✨'**
+  String get signUpWelcome;
+
+  /// No description provided for @signUpTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay on top of your missed prayers with a personalized plan.'**
+  String get signUpTagline;
 
   /// No description provided for @signUpSubtitle.
   ///

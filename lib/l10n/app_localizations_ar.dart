@@ -297,6 +297,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get or => 'أو';
 
   @override
+  String get orContinueWith => 'أو تابع باستخدام';
+
+  @override
+  String get signInWelcome => 'مرحبًا بك في متتبع صلوات القضاء 👋';
+
+  @override
+  String get signInTagline => 'تتبع صلواتك الفائتة بسهولة.';
+
+  @override
   String get forgotPassword => 'هل نسيت كلمة المرور؟';
 
   @override
@@ -304,6 +313,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get signUp => 'إنشاء حساب';
+
+  @override
+  String get signUpWelcome => 'أنشئ حسابك في متتبع صلوات القضاء ✨';
+
+  @override
+  String get signUpTagline => 'نظّم صلواتك الفائتة بخطة تناسبك.';
 
   @override
   String get signUpSubtitle => 'أنشئ حسابك لبدء تتبع صلواتك.';

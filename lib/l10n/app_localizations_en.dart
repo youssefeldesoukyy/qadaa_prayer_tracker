@@ -300,6 +300,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get or => 'or';
 
   @override
+  String get orContinueWith => 'Or continue with';
+
+  @override
+  String get signInWelcome => 'Welcome to Qadaa Tracker 👋';
+
+  @override
+  String get signInTagline => 'Track your missed prayers effortlessly.';
+
+  @override
   String get forgotPassword => 'Forgot Password?';
 
   @override
@@ -307,6 +316,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signUp => 'Sign Up';
+
+  @override
+  String get signUpWelcome => 'Create your Qadaa Tracker account ✨';
+
+  @override
+  String get signUpTagline =>
+      'Stay on top of your missed prayers with a personalized plan.';
 
   @override
   String get signUpSubtitle =>

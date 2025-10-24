@@ -1,8 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:qadaa_prayer_tracker/core/services/dashboard_service.dart';
 
 class StatsDashboard extends StatefulWidget {
   final DailyTotals initial;
@@ -22,63 +21,41 @@ class StatsDashboard extends StatefulWidget {
 
 class _StatsDashboardState extends State<StatsDashboard> {
   bool _isGuest = false;
-  Map<String, dynamic> _guestLogs = {};
+  Map<String, int> _completedTotals = {
+    'fajr': 0,
+    'dhuhr': 0,
+    'asr': 0,
+    'maghrib': 0,
+    'isha': 0,
+  };
+  final DashboardService _dashboardService = DashboardService();
 
   @override
   void initState() {
     super.initState();
-    _loadGuestLogsIfNeeded();
+    _loadCompletionTotals();
   }
 
-  Future<void> _loadGuestLogsIfNeeded() async {
-    final prefs = await SharedPreferences.getInstance();
-    _isGuest = prefs.getBool('isGuest') ?? false;
+  Future<void> _loadCompletionTotals() async {
+    setState(() => _isGuest = false);
 
-    if (_isGuest) {
-      final logsString = prefs.getString('guestLogs');
-      if (logsString != null) {
-        final decoded = jsonDecode(logsString);
+    try {
+      final prefsTotals = await _dashboardService.loadGuestCompletionTotals();
+      final userTotals = await _dashboardService.loadUserCompletionTotals();
+      if (!mounted) return;
 
-        if (decoded is Map) {
-          _guestLogs = Map<String, dynamic>.from(decoded);
-        } else {
-          // Handle corrupted or old data safely
-          _guestLogs = {
-            'fajr': 0,
-            'dhuhr': 0,
-            'asr': 0,
-            'maghrib': 0,
-            'isha': 0,
-          };
-        }
-      }
-      setState(() {});
+      // Detect guest based on local storage flag
+      final result = await _dashboardService.loadDashboardData(widget.initial);
+      if (!mounted) return;
+
+      setState(() {
+        _isGuest = result.isGuest;
+        _completedTotals = _isGuest ? prefsTotals : userTotals;
+      });
+    } catch (e) {
+      debugPrint('❌ Error loading stats totals: $e');
     }
   }
-
-
-  int _guestCompleted(String key) {
-    if (_guestLogs.isEmpty) return 0;
-
-    int total = 0;
-
-    // ✅ Case 1: new nested format (daily entries)
-    if (_guestLogs.values.isNotEmpty && _guestLogs.values.first is Map) {
-      for (var entry in _guestLogs.values) {
-        final day = Map<String, int>.from(entry);
-        total += (day[key] ?? 0);
-      }
-      return total;
-    }
-
-    // ✅ Case 2: old flat format { "fajr": 10, "dhuhr": 5, ... }
-    if (_guestLogs.containsKey(key)) {
-      return _guestLogs[key] ?? 0;
-    }
-
-    return 0;
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -90,11 +67,21 @@ class _StatsDashboardState extends State<StatsDashboard> {
 
     int getCompleted(int total, int rem) => (total - rem).clamp(0, total);
 
-    final fajrCompleted = _isGuest ? _guestCompleted('fajr') : getCompleted(initial.fajr, remaining.fajr);
-    final dhuhrCompleted = _isGuest ? _guestCompleted('dhuhr') : getCompleted(initial.dhuhr, remaining.dhuhr);
-    final asrCompleted = _isGuest ? _guestCompleted('asr') : getCompleted(initial.asr, remaining.asr);
-    final maghribCompleted = _isGuest ? _guestCompleted('maghrib') : getCompleted(initial.maghrib, remaining.maghrib);
-    final ishaCompleted = _isGuest ? _guestCompleted('isha') : getCompleted(initial.isha, remaining.isha);
+    final fajrCompleted = _isGuest
+        ? _completedTotals['fajr'] ?? 0
+        : getCompleted(initial.fajr, remaining.fajr);
+    final dhuhrCompleted = _isGuest
+        ? _completedTotals['dhuhr'] ?? 0
+        : getCompleted(initial.dhuhr, remaining.dhuhr);
+    final asrCompleted = _isGuest
+        ? _completedTotals['asr'] ?? 0
+        : getCompleted(initial.asr, remaining.asr);
+    final maghribCompleted = _isGuest
+        ? _completedTotals['maghrib'] ?? 0
+        : getCompleted(initial.maghrib, remaining.maghrib);
+    final ishaCompleted = _isGuest
+        ? _completedTotals['isha'] ?? 0
+        : getCompleted(initial.isha, remaining.isha);
 
     final totalCompleted = fajrCompleted + dhuhrCompleted + asrCompleted + maghribCompleted + ishaCompleted;
     final totalRemaining = remaining.sum;

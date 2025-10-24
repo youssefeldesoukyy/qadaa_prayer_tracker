@@ -1,14 +1,9 @@
-import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/Views/Dashboard/settings_dashboard.dart';
 import 'package:qadaa_prayer_tracker/Views/Dashboard/stats_dashboard.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:qadaa_prayer_tracker/core/services/dashboard_service.dart';
 
 class HomeDashboard extends StatefulWidget {
   final DailyTotals initial;
@@ -33,174 +28,40 @@ class _HomeDashboardState extends State<HomeDashboard>
   bool _isLoading = true;
   bool _isGuest = false;
   Map<String, dynamic> _guestLogs = {};
+  final DashboardService _dashboardService = DashboardService();
 
   @override
   void initState() {
     super.initState();
     _initial = widget.initial;
     _remaining = widget.initial;
-    _loadUserOrGuestData();
+    _loadDashboardData();
   }
 
-  void _refreshStats() => setState(() {});
-  
   // ✅ Reload data from storage when called from settings
   void _reloadData() async {
-    await _loadUserOrGuestData();
+    await _loadDashboardData();
   }
 
-  Future<void> _loadUserOrGuestData() async {
-    final prefs = await SharedPreferences.getInstance();
-    _isGuest = prefs.getBool('isGuest') ?? false;
-
-    if (_isGuest) {
-      // ✅ Reload guest totals from SharedPreferences
-      final totalsString = prefs.getString('guestTotals');
-      if (totalsString != null) {
-        final totalsJson = jsonDecode(totalsString);
-        _initial = DailyTotals.fromJson(totalsJson);
-        debugPrint('🔄 Guest missed prayers reloaded: $_initial');
-      }
-      
-      final logsString = prefs.getString('guestLogs');
-      if (logsString != null) {
-        _guestLogs = jsonDecode(logsString);
-        _applyGuestLogs();
-      }
-      setState(() => _isLoading = false);
-      return;
-    }
-
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      setState(() => _isLoading = false);
-      return;
-    }
-
+  Future<void> _loadDashboardData() async {
+    setState(() => _isLoading = true);
     try {
-      final doc =
-      await FirebaseFirestore.instance.collection('Users').doc(user.uid).get();
-
-      if (doc.exists) {
-        final data = doc.data() ?? {};
-        final prayerPlan = Map<String, dynamic>.from(data['prayerPlan'] ?? {});
-        final missed =
-        Map<String, dynamic>.from(prayerPlan['missedPrayers'] ?? {});
-        final logs = Map<String, dynamic>.from(data['logs'] ?? {});
-
-        int loggedFajr = 0,
-            loggedDhuhr = 0,
-            loggedAsr = 0,
-            loggedMaghrib = 0,
-            loggedIsha = 0;
-
-        for (var entry in logs.values) {
-          final day = Map<String, int>.from(entry);
-          loggedFajr += (day['fajr'] ?? 0);
-          loggedDhuhr += (day['dhuhr'] ?? 0);
-          loggedAsr += (day['asr'] ?? 0);
-          loggedMaghrib += (day['maghrib'] ?? 0);
-          loggedIsha += (day['isha'] ?? 0);
-        }
-
-        setState(() {
-          _initial = DailyTotals(
-            fajr: missed['fajr'] ?? 0,
-            dhuhr: missed['dhuhr'] ?? 0,
-            asr: missed['asr'] ?? 0,
-            maghrib: missed['maghrib'] ?? 0,
-            isha: missed['isha'] ?? 0,
-          );
-          
-          // ✅ Print current missed prayers object
-          debugPrint('🏠 Home Dashboard - Current Missed Prayers: $_initial');
-
-          _remaining = DailyTotals(
-            fajr: (_initial.fajr - loggedFajr).clamp(0, _initial.fajr),
-            dhuhr: (_initial.dhuhr - loggedDhuhr).clamp(0, _initial.dhuhr),
-            asr: (_initial.asr - loggedAsr).clamp(0, _initial.asr),
-            maghrib:
-            (_initial.maghrib - loggedMaghrib).clamp(0, _initial.maghrib),
-            isha: (_initial.isha - loggedIsha).clamp(0, _initial.isha),
-          );
-
-          _totalCompleted =
-              loggedFajr + loggedDhuhr + loggedAsr + loggedMaghrib + loggedIsha;
-          _isLoading = false;
-        });
-      } else {
-        setState(() => _isLoading = false);
-      }
+      final result = await _dashboardService.loadDashboardData(widget.initial);
+      if (!mounted) return;
+      setState(() {
+        _initial = result.initial;
+        _remaining = result.remaining;
+        _totalCompleted = result.totalCompleted;
+        _isGuest = result.isGuest;
+        _guestLogs = result.guestLogs;
+        _isLoading = false;
+      });
     } catch (e) {
-      debugPrint('❌ Error loading user data: $e');
+      debugPrint('❌ Error loading dashboard data: $e');
+      if (!mounted) return;
       setState(() => _isLoading = false);
     }
   }
-
-  void _applyGuestLogs() {
-    int loggedFajr = 0,
-        loggedDhuhr = 0,
-        loggedAsr = 0,
-        loggedMaghrib = 0,
-        loggedIsha = 0;
-
-    if (_guestLogs.isEmpty) return;
-
-    try {
-      // ✅ Case 1: new nested format — daily logs (e.g. {"20-10-2025": {"fajr":1}})
-      if (_guestLogs.values.isNotEmpty && _guestLogs.values.first is Map) {
-        for (var entry in _guestLogs.values) {
-          final day = Map<String, int>.from(entry);
-          loggedFajr += (day['fajr'] ?? 0);
-          loggedDhuhr += (day['dhuhr'] ?? 0);
-          loggedAsr += (day['asr'] ?? 0);
-          loggedMaghrib += (day['maghrib'] ?? 0);
-          loggedIsha += (day['isha'] ?? 0);
-        }
-      }
-      // ✅ Case 2: old flat format { "fajr": 10, "dhuhr": 3, ... }
-      else if (_guestLogs.containsKey('fajr')) {
-        loggedFajr = _guestLogs['fajr'] ?? 0;
-        loggedDhuhr = _guestLogs['dhuhr'] ?? 0;
-        loggedAsr = _guestLogs['asr'] ?? 0;
-        loggedMaghrib = _guestLogs['maghrib'] ?? 0;
-        loggedIsha = _guestLogs['isha'] ?? 0;
-      } else {
-        // fallback for corrupted formats (like int)
-        debugPrint('⚠️ guestLogs corrupted — resetting');
-        _guestLogs = {
-          'fajr': 0,
-          'dhuhr': 0,
-          'asr': 0,
-          'maghrib': 0,
-          'isha': 0,
-        };
-      }
-    } catch (e) {
-      debugPrint('❌ Error parsing guestLogs: $e');
-      _guestLogs = {
-        'fajr': 0,
-        'dhuhr': 0,
-        'asr': 0,
-        'maghrib': 0,
-        'isha': 0,
-      };
-    }
-
-    setState(() {
-      _remaining = DailyTotals(
-        fajr: (_initial.fajr - loggedFajr).clamp(0, _initial.fajr),
-        dhuhr: (_initial.dhuhr - loggedDhuhr).clamp(0, _initial.dhuhr),
-        asr: (_initial.asr - loggedAsr).clamp(0, _initial.asr),
-        maghrib: (_initial.maghrib - loggedMaghrib).clamp(0, _initial.maghrib),
-        isha: (_initial.isha - loggedIsha).clamp(0, _initial.isha),
-      );
-
-      _totalCompleted =
-          loggedFajr + loggedDhuhr + loggedAsr + loggedMaghrib + loggedIsha;
-    });
-  }
-
 
   int get _totalInitial => _initial.sum;
   int get _totalRemaining => _remaining.sum;
@@ -268,57 +129,19 @@ class _HomeDashboardState extends State<HomeDashboard>
     _showCenteredNotice(title: title, subtitle: subtitle);
 
     if (logged) {
-      if (_isGuest) {
-        await _logPrayerLocally(prayerKey);
-      } else {
-        await _logPrayerToFirestore(prayerKey);
+      try {
+        if (_isGuest) {
+          final updatedLogs =
+              await _dashboardService.logGuestPrayer(prayerKey, _guestLogs);
+          if (!mounted) return;
+          setState(() => _guestLogs = updatedLogs);
+        } else {
+          await _dashboardService.logUserPrayer(prayerKey);
+        }
+      } catch (e) {
+        debugPrint('❌ Error persisting prayer log: $e');
       }
     }
-  }
-
-  Future<void> _logPrayerToFirestore(String prayerKey) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    final firestore = FirebaseFirestore.instance;
-    final dateKey = DateFormat('dd-MM-yyyy').format(DateTime.now());
-
-    try {
-      final userRef = firestore.collection('Users').doc(user.uid);
-      final userDoc = await userRef.get();
-      final data = userDoc.data() ?? {};
-      final logs = Map<String, dynamic>.from(data['logs'] ?? {});
-      final todayLog = Map<String, dynamic>.from(logs[dateKey] ?? {
-        'fajr': 0,
-        'dhuhr': 0,
-        'asr': 0,
-        'maghrib': 0,
-        'isha': 0,
-      });
-
-      todayLog[prayerKey] = (todayLog[prayerKey] ?? 0) + 1;
-      logs[dateKey] = todayLog;
-      await userRef.update({'logs': logs});
-    } catch (e) {
-      debugPrint('❌ Error logging prayer: $e');
-    }
-  }
-
-  Future<void> _logPrayerLocally(String prayerKey) async {
-    final prefs = await SharedPreferences.getInstance();
-    final dateKey = DateFormat('dd-MM-yyyy').format(DateTime.now());
-    final todayLog = Map<String, dynamic>.from(_guestLogs[dateKey] ?? {
-      'fajr': 0,
-      'dhuhr': 0,
-      'asr': 0,
-      'maghrib': 0,
-      'isha': 0,
-    });
-
-    todayLog[prayerKey] = (todayLog[prayerKey] ?? 0) + 1;
-    _guestLogs[dateKey] = todayLog;
-    await prefs.setString('guestLogs', jsonEncode(_guestLogs));
-    _applyGuestLogs();
-    _refreshStats();
   }
 
   void _showCenteredNotice({required String title, required String subtitle}) {

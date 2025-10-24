@@ -1,21 +1,19 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:qadaa_prayer_tracker/Views/sign_in_screen.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
-import 'package:qadaa_prayer_tracker/main.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'package:qadaa_prayer_tracker/Views/daily_plan.dart';
 import 'package:qadaa_prayer_tracker/Views/qadaa_missed.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qadaa_prayer_tracker/Views/Dashboard/edit_logged_prayers.dart';
+import 'package:qadaa_prayer_tracker/core/services/dashboard_service.dart';
+import 'package:qadaa_prayer_tracker/main.dart' show MyApp;
 
 class SettingsDashboard extends StatefulWidget {
-  DailyTotals initial;
+  final DailyTotals initial;
   final DailyTotals remaining;
   final Map<String, int>? perDay;
-  final VoidCallback? onDataChanged; // 👈 add this
+  final VoidCallback? onDataChanged;
 
   SettingsDashboard({
     super.key,
@@ -30,26 +28,30 @@ class SettingsDashboard extends StatefulWidget {
 }
 
 class _SettingsDashboardState extends State<SettingsDashboard> {
+  final DashboardService _dashboardService = DashboardService();
   String _selectedLanguage = 'English';
   bool _isGuest = false;
+  late DailyTotals _currentInitial;
 
-  int get _totalCompleted => widget.initial.sum - widget.remaining.sum;
+  int get _totalCompleted => _currentInitial.sum - widget.remaining.sum;
   int get _totalRemaining => widget.remaining.sum;
 
   @override
   void initState() {
     super.initState();
+    _currentInitial = widget.initial;
     _loadGuestStatusAndLanguage();
   }
 
   // ✅ Load guest status & language
   Future<void> _loadGuestStatusAndLanguage() async {
+    // Use dashboardService for prefs
     final prefs = await SharedPreferences.getInstance();
     final isGuest = prefs.getBool('isGuest') ?? false;
-    final langCode = prefs.getString('language_code') ?? 'ar';
+    final langCode = await _dashboardService.getSelectedLanguage();
     setState(() {
       _isGuest = isGuest;
-      _selectedLanguage = langCode == 'ar' ? 'Arabic' : 'English';
+      _selectedLanguage = langCode;
     });
   }
 
@@ -57,71 +59,21 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
   // FIRESTORE RESET FUNCTION
   // -------------------------------------------------
   Future<void> _resetFirestoreData() async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
-
-      final userRef =
-          FirebaseFirestore.instance.collection('Users').doc(user.uid);
-
-      await userRef.update({
-        'prayerPlan.missedPrayers': {
-          'fajr': 0,
-          'dhuhr': 0,
-          'asr': 0,
-          'maghrib': 0,
-          'isha': 0,
-        },
-        'prayerPlan.dailyPlan': {
-          'fajr': 0,
-          'dhuhr': 0,
-          'asr': 0,
-          'maghrib': 0,
-          'isha': 0,
-        },
-        'logs': {},
-      });
-
-      debugPrint('✅ Firestore data reset successfully.');
-    } catch (e) {
-      debugPrint('❌ Error resetting Firestore data: $e');
-    }
+    await _dashboardService.resetFirestoreData();
   }
 
   // -------------------------------------------------
   // LOCAL RESET (for guest)
   // -------------------------------------------------
   Future<void> _resetLocalGuestData() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    // Keep guest flag and language
-    final lang = prefs.getString('language_code') ?? 'ar';
-    await prefs.clear();
-    await prefs.setBool('isGuest', true);
-    await prefs.setString('language_code', lang);
-
-    // Reset only qadaa + daily plan, keep other things like createdAt
-    await prefs.remove('guestTotals');
-    await prefs.remove('guestPerDay');
-    await prefs.remove('guestLogs');
-
-    debugPrint('✅ Local guest prayer data reset.');
+    await _dashboardService.resetLocalGuestData();
   }
 
   // -------------------------------------------------
   // CLEAR LOCAL STORAGE (for logout)
   // -------------------------------------------------
   Future<void> _clearLocalStorage({bool keepGuestFlag = false}) async {
-    final prefs = await SharedPreferences.getInstance();
-    final lang = prefs.getString('language_code') ?? 'ar';
-    await prefs.clear();
-
-    if (keepGuestFlag) {
-      await prefs.setBool('isGuest', true);
-      await prefs.setString('language_code', lang);
-    }
-
-    debugPrint('✅ Local SharedPreferences cleared.');
+    await _dashboardService.clearLocalStorage(keepGuestFlag: keepGuestFlag);
   }
 
   void _editLoggedPrayers() async {
@@ -145,7 +97,7 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
       context,
       MaterialPageRoute(
         builder: (_) => DailyPlan(
-          totals: widget.initial,
+          totals: _currentInitial,
           perDay: widget.perDay,
           fromSettings: true,
         ),
@@ -165,12 +117,12 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
       context,
       MaterialPageRoute(
           builder: (_) =>
-              QadaaMissed(initialTotals: widget.initial, isEditing: true)),
+              QadaaMissed(initialTotals: _currentInitial, isEditing: true)),
     );
 
     if (updatedTotals != null) {
       // ✅ Validate that missed prayers >= completed prayers for each prayer type
-      final completedCounts = await _getCompletedCountsByPrayer();
+      final completedCounts = await _dashboardService.getCompletedCountsByPrayer(isGuest: _isGuest);
 
       // Check each prayer type individually
       if (updatedTotals.fajr < (completedCounts['fajr'] ?? 0).toDouble() ||
@@ -184,7 +136,7 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
       }
 
       setState(() {
-        widget.initial = DailyTotals(
+        _currentInitial = DailyTotals(
           fajr: updatedTotals.fajr,
           dhuhr: updatedTotals.dhuhr,
           asr: updatedTotals.asr,
@@ -194,80 +146,10 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
       });
 
       // ✅ Save the updated missed prayers to storage
-      await _saveMissedPrayersToStorage(updatedTotals);
+      await _dashboardService.saveMissedPrayers(updatedTotals, isGuest: _isGuest);
 
       // ✅ Notify home dashboard to refresh
       widget.onDataChanged?.call();
-    }
-  }
-
-  // ✅ Get actual completed count by prayer type from storage (Firebase or SharedPreferences)
-  Future<Map<String, int>> _getCompletedCountsByPrayer() async {
-    if (_isGuest) {
-      // Guest mode: Get from SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      final logsString = prefs.getString('guestLogs');
-      if (logsString != null) {
-        final logs = jsonDecode(logsString);
-        int fajr = 0, dhuhr = 0, asr = 0, maghrib = 0, isha = 0;
-
-        // Calculate completed by prayer type from logs
-        if (logs.values.isNotEmpty && logs.values.first is Map) {
-          for (var entry in logs.values) {
-            final day = Map<String, int>.from(entry);
-            fajr += (day['fajr'] ?? 0);
-            dhuhr += (day['dhuhr'] ?? 0);
-            asr += (day['asr'] ?? 0);
-            maghrib += (day['maghrib'] ?? 0);
-            isha += (day['isha'] ?? 0);
-          }
-        }
-        return {
-          'fajr': fajr,
-          'dhuhr': dhuhr,
-          'asr': asr,
-          'maghrib': maghrib,
-          'isha': isha
-        };
-      }
-      return {'fajr': 0, 'dhuhr': 0, 'asr': 0, 'maghrib': 0, 'isha': 0};
-    } else {
-      // Logged-in mode: Get from Firebase
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        try {
-          final doc = await FirebaseFirestore.instance
-              .collection('Users')
-              .doc(user.uid)
-              .get();
-
-          if (doc.exists) {
-            final data = doc.data() ?? {};
-            final logs = Map<String, dynamic>.from(data['logs'] ?? {});
-            int fajr = 0, dhuhr = 0, asr = 0, maghrib = 0, isha = 0;
-
-            // Calculate completed by prayer type from Firebase logs
-            for (var entry in logs.values) {
-              final day = Map<String, int>.from(entry);
-              fajr += (day['fajr'] ?? 0);
-              dhuhr += (day['dhuhr'] ?? 0);
-              asr += (day['asr'] ?? 0);
-              maghrib += (day['maghrib'] ?? 0);
-              isha += (day['isha'] ?? 0);
-            }
-            return {
-              'fajr': fajr,
-              'dhuhr': dhuhr,
-              'asr': asr,
-              'maghrib': maghrib,
-              'isha': isha
-            };
-          }
-        } catch (e) {
-          debugPrint('❌ Error getting completed count from Firebase: $e');
-        }
-      }
-      return {'fajr': 0, 'dhuhr': 0, 'asr': 0, 'maghrib': 0, 'isha': 0};
     }
   }
 
@@ -345,32 +227,6 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
     }
 
     return '${loc.validationIntro}\n\n${issues.join('\n')}\n\n${loc.validationOutro}';
-  }
-
-  // ✅ Save missed prayers to storage (Firestore or SharedPreferences)
-  Future<void> _saveMissedPrayersToStorage(DailyTotals totals) async {
-    if (_isGuest) {
-      // Guest mode: Save to SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('guestTotals', jsonEncode(totals.toJson()));
-      debugPrint('✅ Guest missed prayers saved: $totals');
-    } else {
-      // Logged-in mode: Save to Firestore
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        try {
-          await FirebaseFirestore.instance
-              .collection('Users')
-              .doc(user.uid)
-              .update({
-            'prayerPlan.missedPrayers': totals.toMap(),
-          });
-          debugPrint('✅ Firestore missed prayers saved: $totals');
-        } catch (e) {
-          debugPrint('❌ Error saving missed prayers to Firestore: $e');
-        }
-      }
-    }
   }
 
   void _resetAllData() {
@@ -459,7 +315,7 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
             ),
             onPressed: () async {
               Navigator.pop(ctx);
-              await FirebaseAuth.instance.signOut();
+              await _dashboardService.signOut();
               await _clearLocalStorage();
 
               if (context.mounted) {
@@ -555,7 +411,7 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
               ],
             ),
             const SizedBox(height: 16),
-            _statusRow(loc.totalMissed, '${widget.initial.sum} ${loc.prayers}',
+            _statusRow(loc.totalMissed, '${_currentInitial.sum} ${loc.prayers}',
                 Colors.black),
             const SizedBox(height: 8),
             _statusRow(
@@ -654,22 +510,26 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
             Row(
               children: [
                 Expanded(
-                    child: _languageButton(
-                        loc.english, _selectedLanguage == 'English', () async {
-                  setState(() => _selectedLanguage = 'English');
-                  MyApp.setLocale(context, const Locale('en'));
-                  final prefs = await SharedPreferences.getInstance();
-                  await prefs.setString('language_code', 'en');
-                })),
+                  child: _languageButton(
+                    loc.english,
+                    _selectedLanguage == 'English',
+                    () async {
+                      setState(() => _selectedLanguage = 'English');
+                      await _dashboardService.changeLanguage(context, 'en');
+                    },
+                  ),
+                ),
                 const SizedBox(width: 12),
                 Expanded(
-                    child: _languageButton(
-                        loc.arabic, _selectedLanguage == 'Arabic', () async {
-                  setState(() => _selectedLanguage = 'Arabic');
-                  MyApp.setLocale(context, const Locale('ar'));
-                  final prefs = await SharedPreferences.getInstance();
-                  await prefs.setString('language_code', 'ar');
-                })),
+                  child: _languageButton(
+                    loc.arabic,
+                    _selectedLanguage == 'Arabic',
+                    () async {
+                      setState(() => _selectedLanguage = 'Arabic');
+                      await _dashboardService.changeLanguage(context, 'ar');
+                    },
+                  ),
+                ),
               ],
             ),
           ],

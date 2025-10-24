@@ -1,10 +1,10 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
+import 'package:qadaa_prayer_tracker/core/services/dashboard_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 
 class EditLoggedPrayers extends StatefulWidget {
   const EditLoggedPrayers({super.key});
@@ -16,6 +16,8 @@ class EditLoggedPrayers extends StatefulWidget {
 class _EditLoggedPrayersState extends State<EditLoggedPrayers> {
   bool _isGuest = false;
   Map<String, dynamic> _guestLogs = {};
+  final DashboardService _dashboardService = DashboardService();
+  bool _isLoading = true;
 
   // total logged prayers so far
   Map<String, int> _currentTotals = {
@@ -46,69 +48,21 @@ class _EditLoggedPrayersState extends State<EditLoggedPrayers> {
     _isGuest = prefs.getBool('isGuest') ?? false;
 
     if (_isGuest) {
-      final logsString = prefs.getString('guestLogs');
-      final missedString = prefs.getString('guestTotals'); // ✅ correct key
-
-      if (logsString != null) {
-        final data = jsonDecode(logsString);
-        if (data is Map) _guestLogs = Map<String, dynamic>.from(data);
-      }
-
-      if (missedString != null) {
-        final missedData = jsonDecode(missedString);
-        _missedTotals = Map<String, int>.from(missedData.map(
-              (key, value) => MapEntry(key, (value as num).toInt()),
-        ));
-      }
-
-      _currentTotals = _calculateTotals(_guestLogs);
+      _guestLogs = await _dashboardService.loadGuestLogs();
+      final totals = await _dashboardService.loadMissedTotals(isGuest: true);
+      _missedTotals = Map<String, int>.from(totals);
+      _currentTotals = _dashboardService.aggregateLogs(_guestLogs);
     } else {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        final doc = await FirebaseFirestore.instance
-            .collection('Users')
-            .doc(user.uid)
-            .get();
-        if (doc.exists) {
-          final data = doc.data() ?? {};
-          final logs = Map<String, dynamic>.from(data['logs'] ?? {});
-          final missed = Map<String, dynamic>.from(
-            (data['prayerPlan']?['missedPrayers']) ?? {},
-          ); // ✅ correct Firestore path
-
-          _currentTotals = _calculateTotals(logs);
-          _missedTotals =
-              missed.map((k, v) => MapEntry(k, (v as num).toInt()));
-        }
-      }
+      final logs = await _dashboardService.loadUserLogs();
+      final totals = await _dashboardService.loadMissedTotals(isGuest: false);
+      _guestLogs = logs;
+      _missedTotals = Map<String, int>.from(totals);
+      _currentTotals = _dashboardService.aggregateLogs(logs);
     }
 
-    setState(() {});
-    debugPrint('_missedTotals: $_missedTotals');
-    debugPrint('_currentTotals: $_currentTotals');
-  }
-
-  Map<String, int> _calculateTotals(Map<String, dynamic> logs) {
-    final totals = {
-      'fajr': 0,
-      'dhuhr': 0,
-      'asr': 0,
-      'maghrib': 0,
-      'isha': 0,
-    };
-
-    for (var value in logs.values) {
-      if (value is Map) {
-        totals['fajr'] = totals['fajr']! + ((value['fajr'] ?? 0) as num).toInt();
-        totals['dhuhr'] = totals['dhuhr']! + ((value['dhuhr'] ?? 0) as num).toInt();
-        totals['asr'] = totals['asr']! + ((value['asr'] ?? 0) as num).toInt();
-        totals['maghrib'] =
-            totals['maghrib']! + ((value['maghrib'] ?? 0) as num).toInt();
-        totals['isha'] = totals['isha']! + ((value['isha'] ?? 0) as num).toInt();
-      }
+    if (mounted) {
+      setState(() => _isLoading = false);
     }
-
-    return totals;
   }
 
   String _localizedPrayerName(String key, AppLocalizations loc) {
@@ -160,13 +114,8 @@ class _EditLoggedPrayersState extends State<EditLoggedPrayers> {
     final dateKey = DateFormat('dd-MM-yyyy').format(DateTime.now());
 
     if (_isGuest) {
-      final prefs = await SharedPreferences.getInstance();
-      final logsString = prefs.getString('guestLogs');
-      Map<String, dynamic> guestLogs = {};
-      if (logsString != null) guestLogs = jsonDecode(logsString);
-
-      final totalsBefore = _calculateTotals(guestLogs);
-      final todayLog = Map<String, dynamic>.from(guestLogs[dateKey] ?? {
+      final totalsBefore = _dashboardService.aggregateLogs(_guestLogs);
+      final todayLog = Map<String, dynamic>.from(_guestLogs[dateKey] ?? {
         'fajr': 0,
         'dhuhr': 0,
         'asr': 0,
@@ -179,17 +128,18 @@ class _EditLoggedPrayersState extends State<EditLoggedPrayers> {
         if (diff != 0) todayLog[key] = (todayLog[key] ?? 0) + diff;
       }
 
-      guestLogs[dateKey] = todayLog;
-      await prefs.setString('guestLogs', jsonEncode(guestLogs));
+      final updatedLogs = Map<String, dynamic>.from(_guestLogs);
+      updatedLogs[dateKey] = todayLog;
+      await _dashboardService.updateGuestLogs(updatedLogs);
     } else {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         final userRef =
-        FirebaseFirestore.instance.collection('Users').doc(user.uid);
+            FirebaseFirestore.instance.collection('Users').doc(user.uid);
         final snapshot = await userRef.get();
         final data = snapshot.data() ?? {};
         final logs = Map<String, dynamic>.from(data['logs'] ?? {});
-        final totalsBefore = _calculateTotals(logs);
+        final totalsBefore = _dashboardService.aggregateLogs(logs);
         final todayLog = Map<String, dynamic>.from(logs[dateKey] ?? {
           'fajr': 0,
           'dhuhr': 0,
@@ -229,7 +179,7 @@ class _EditLoggedPrayersState extends State<EditLoggedPrayers> {
           style: const TextStyle(color: Colors.black87),
         ),
       ),
-      body: _currentTotals.isEmpty
+      body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
         padding: const EdgeInsets.all(16),

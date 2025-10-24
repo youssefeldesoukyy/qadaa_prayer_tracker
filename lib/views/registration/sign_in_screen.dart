@@ -1,13 +1,10 @@
-import 'dart:convert';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
+import 'package:qadaa_prayer_tracker/core/services/auth_exceptions.dart';
+import 'package:qadaa_prayer_tracker/core/services/auth_flow_result.dart';
+import 'package:qadaa_prayer_tracker/core/services/auth_service.dart';
 import 'package:qadaa_prayer_tracker/Views/Dashboard/home_dashboard.dart';
 import 'package:qadaa_prayer_tracker/Views/qadaa_missed.dart';
 import 'package:qadaa_prayer_tracker/Views/sign_up_screen.dart';
@@ -26,10 +23,8 @@ class _SignInScreenState extends State<SignInScreen> {
   bool _obscurePassword = true;
   bool _isLoading = false;
   String? _errorMessage;
+  final AuthService _authService = AuthService();
 
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  // ✅ Email / Password Sign In
   Future<void> _signIn() async {
     final loc = AppLocalizations.of(context)!;
 
@@ -39,12 +34,19 @@ class _SignInScreenState extends State<SignInScreen> {
     });
 
     try {
-      final userCredential = await _auth.signInWithEmailAndPassword(
+      final user = await _authService.signInWithEmail(
         email: _emailOrPhoneController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
-      await _navigateAfterSignIn(userCredential.user);
+      if (user == null) {
+        setState(() => _errorMessage = loc.loginFailed);
+        return;
+      }
+
+      final result = await _authService.determinePostSignIn(user);
+      if (!mounted) return;
+      _handleAuthResult(result);
     } on FirebaseAuthException catch (e) {
       String errorMessage = loc.loginFailed;
       if (e.code == 'user-not-found' || e.code == 'wrong-password') {
@@ -56,195 +58,140 @@ class _SignInScreenState extends State<SignInScreen> {
       }
 
       setState(() => _errorMessage = errorMessage);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Email sign-in error: $e');
       setState(() => _errorMessage = loc.loginFailed);
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
-  // ✅ Google Sign-In
   Future<void> _signInWithGoogle() async {
     final loc = AppLocalizations.of(context)!;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
-      setState(() => _isLoading = true);
-      final googleSignIn = GoogleSignIn(scopes: ['email']);
-      await googleSignIn.signOut(); // Force fresh selection
-      final googleUser = await googleSignIn.signIn();
-      if (googleUser == null) return;
-
-      final googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
+      final user = await _authService.signInWithGoogle();
+      final result = await _authService.determinePostSignIn(user);
+      if (!mounted) return;
+      _handleAuthResult(result);
+    } on AuthCancelledException {
+      // User aborted the Google flow.
+    } on FirebaseAuthException catch (e) {
+      debugPrint('Google sign-in Firebase error: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loc.googleSignInFailed)),
       );
-
-      final userCredential =
-          await FirebaseAuth.instance.signInWithCredential(credential);
-      final user = userCredential.user;
-      if (user == null) return;
-
-      final firestore = FirebaseFirestore.instance;
-      final userRef = firestore.collection('Users').doc(user.uid);
-      final doc = await userRef.get();
-
-      if (!doc.exists) {
-        final displayName = user.displayName ?? '';
-        final parts = displayName.split(' ');
-        final firstName = parts.isNotEmpty ? parts.first : '';
-        final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
-
-        await userRef.set({
-          'id': user.uid,
-          'email': user.email,
-          'firstName': firstName,
-          'lastName': lastName,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const QadaaMissed()),
-          );
-        }
-        return;
-      }
-
-      await _navigateAfterSignIn(user);
     } catch (e) {
       debugPrint('Google sign-in error: $e');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(loc.googleSignInFailed)),
       );
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
-  // ✅ Apple Sign-In
   Future<void> _signInWithApple() async {
     final loc = AppLocalizations.of(context)!;
     if (_isLoading) return;
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
-      final appleCredential = await SignInWithApple.getAppleIDCredential(
-        scopes: [
-          AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName
-        ],
+      final user = await _authService.signInWithApple();
+      final result = await _authService.determinePostSignIn(user);
+      if (!mounted) return;
+      _handleAuthResult(result);
+    } on AuthCancelledException {
+      // User aborted the Apple flow.
+    } on FirebaseAuthException catch (e) {
+      debugPrint('Apple sign-in Firebase error: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loc.loginFailed)),
       );
-
-      final oauthCredential = OAuthProvider("apple.com").credential(
-        idToken: appleCredential.identityToken,
-        accessToken: appleCredential.authorizationCode,
-      );
-
-      final userCredential =
-          await FirebaseAuth.instance.signInWithCredential(oauthCredential);
-
-      await _navigateAfterSignIn(userCredential.user);
     } catch (e) {
       debugPrint('Apple sign-in error: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loc.loginFailed)),
+      );
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
-  // ✅ Guest Sign-In
   Future<void> _continueAsGuest() async {
-    final prefs = await SharedPreferences.getInstance();
+    final loc = AppLocalizations.of(context)!;
 
-    await prefs.setBool('isGuest', true);
-    final currentLang = Localizations.localeOf(context).languageCode;
-    await prefs.setString('language_code', currentLang);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
-    final isFirstTime = prefs.getBool('isGuestFirstTime') ?? true;
-
-    if (isFirstTime) {
-      await prefs.setBool('isGuestFirstTime', true);
+    try {
+      final localeCode = Localizations.localeOf(context).languageCode;
+      final result = await _authService.continueAsGuest(localeCode);
+      if (!mounted) return;
+      _handleAuthResult(result);
+    } catch (e) {
+      debugPrint('Guest sign-in error: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loc.loginFailed)),
+      );
+    } finally {
       if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _handleAuthResult(AuthFlowResult result) {
+    if (!mounted) return;
+
+    switch (result.target) {
+      case AuthTarget.qadaaSetup:
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const QadaaMissed()),
         );
-      }
-      return;
-    }
-
-    final totalsData = prefs.getString('guestTotals');
-    final perDayData = prefs.getString('guestPerDay');
-
-    if (totalsData != null) {
-      final totals = DailyTotals.fromJson(jsonDecode(totalsData));
-      final perDay = perDayData != null
-          ? Map<String, int>.from(jsonDecode(perDayData))
-          : null;
-
-      if (mounted) {
+        break;
+      case AuthTarget.homeDashboard:
+        final totals = result.totals;
+        if (totals == null) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const QadaaMissed()),
+          );
+          return;
+        }
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => HomeDashboard(initial: totals, perDay: perDay),
+            builder: (_) => HomeDashboard(
+              initial: totals,
+              perDay: result.perDay,
+            ),
           ),
         );
-      }
-    } else {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const QadaaMissed()),
-        );
-      }
-    }
-  }
-
-  // ✅ Post-login Navigation
-  Future<void> _navigateAfterSignIn(User? user) async {
-    if (user == null) return;
-
-    final doc = await FirebaseFirestore.instance
-        .collection('Users')
-        .doc(user.uid)
-        .get();
-    if (!doc.exists) {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const QadaaMissed()),
-        );
-      }
-      return;
-    }
-
-    final data = doc.data() ?? {};
-    final prayerPlan = data['prayerPlan'] as Map<String, dynamic>?;
-
-    if (prayerPlan == null || prayerPlan['missedPrayers'] == null) {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const QadaaMissed()),
-        );
-      }
-      return;
-    }
-
-    final missedPrayers =
-        Map<String, dynamic>.from(prayerPlan['missedPrayers'] ?? {});
-    final totals = DailyTotals.fromMap(missedPrayers);
-    final dailyPlanRaw = prayerPlan['dailyPlan'] as Map<String, dynamic>? ?? {};
-    final perDay =
-        dailyPlanRaw.map((key, value) => MapEntry(key, (value as num).toInt()));
-
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => HomeDashboard(initial: totals, perDay: perDay),
-        ),
-      );
+        break;
     }
   }
 
@@ -286,19 +233,23 @@ class _SignInScreenState extends State<SignInScreen> {
                   return;
                 }
                 try {
-                  await FirebaseAuth.instance
-                      .sendPasswordResetEmail(email: email);
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(loc.resetEmailSent)),
-                    );
-                  }
+                  await _authService.sendPasswordReset(email);
+                  if (!context.mounted) return;
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(loc.resetEmailSent)),
+                  );
                 } on FirebaseAuthException catch (e) {
                   String msg = loc.resetFailed;
                   if (e.code == 'user-not-found') msg = loc.emailNotFound;
                   ScaffoldMessenger.of(context)
                       .showSnackBar(SnackBar(content: Text(msg)));
+                } catch (e) {
+                  debugPrint('Reset password error: $e');
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(loc.resetFailed)),
+                  );
                 }
               },
               child: Text(loc.send,

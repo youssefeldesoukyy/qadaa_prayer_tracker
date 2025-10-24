@@ -1,12 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'package:qadaa_prayer_tracker/Views/daily_plan.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:qadaa_prayer_tracker/core/services/dashboard_service.dart';
 
 class QadaaMissed extends StatefulWidget {
   final bool fromGuest; // ✅ distinguish guest vs logged user
@@ -23,6 +20,7 @@ enum QadaMode { timePeriod, manual }
 
 class _QadaaMissedState extends State<QadaaMissed> {
   QadaMode _mode = QadaMode.timePeriod;
+  final DashboardService _dashboardService = DashboardService();
 
   final _years = TextEditingController();
   final _months = TextEditingController();
@@ -281,52 +279,24 @@ class _QadaaMissedState extends State<QadaaMissed> {
       return;
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    final isGuest = prefs.getBool('isGuest') ?? false;
+    final shouldUseGuestFlow =
+        widget.fromGuest || await _dashboardService.useGuestFlow();
 
-    if (isGuest || widget.fromGuest) {
-      // 🟡 Guest: Save JSON-based totals
-      await prefs.setString('guestTotals', jsonEncode(totals.toJson()));
-      await prefs.setBool('isGuestFirstTime', false);
-      await prefs.setBool('isGuest', true);
+    await _dashboardService.saveMissedPrayers(
+      totals,
+      isGuest: shouldUseGuestFlow,
+    );
 
-      // 🚀 Go to DailyPlan
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => DailyPlan(totals: totals)),
-        );
-      }
-      return;
-    }
+    if (!mounted) return;
 
-    // 🔵 Logged-in user → save to Firestore
-    await _saveMissedPrayersToFirestore(totals);
+    final nextPage = MaterialPageRoute(
+      builder: (_) => DailyPlan(totals: totals),
+    );
 
-    if (mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => DailyPlan(totals: totals)),
-      );
-    }
-  }
-
-  Future<void> _saveMissedPrayersToFirestore(DailyTotals totals) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    try {
-      await FirebaseFirestore.instance
-          .collection('Users')
-          .doc(user.uid)
-          .update({
-        'prayerPlan.createdAt': FieldValue.serverTimestamp(),
-        'prayerPlan.missedPrayers': totals.toMap(),
-      });
-
-      debugPrint('✅ Missed prayers saved for ${user.email}');
-    } catch (e) {
-      debugPrint('❌ Error saving missed prayers: $e');
+    if (shouldUseGuestFlow) {
+      Navigator.pushReplacement(context, nextPage);
+    } else {
+      Navigator.push(context, nextPage);
     }
   }
 }

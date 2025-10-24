@@ -1,10 +1,12 @@
-import 'dart:convert';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:qadaa_prayer_tracker/main.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+import 'guest_repository.dart';
+import 'user_repository.dart';
 
 class DashboardLoadResult {
   final DailyTotals initial;
@@ -26,170 +28,70 @@ class DashboardService {
   DashboardService({
     FirebaseAuth? auth,
     FirebaseFirestore? firestore,
-  })  : _auth = auth ?? FirebaseAuth.instance,
-        _firestore = firestore ?? FirebaseFirestore.instance;
+    GuestRepository? guestRepository,
+    UserRepository? userRepository,
+  })  : _guestRepo = guestRepository ?? GuestRepository(),
+        _userRepo = userRepository ??
+            UserRepository(
+              auth: auth,
+              firestore: firestore,
+            );
 
-  final FirebaseAuth _auth;
-  final FirebaseFirestore _firestore;
+  final GuestRepository _guestRepo;
+  final UserRepository _userRepo;
 
-  Future<DashboardLoadResult> loadDashboardData(DailyTotals fallbackInitial) async {
-    final prefs = await SharedPreferences.getInstance();
-    final isGuest = prefs.getBool('isGuest') ?? false;
+  Future<DashboardLoadResult> loadDashboardData(
+    DailyTotals fallbackInitial,
+  ) async {
+    final useGuest = await _shouldUseGuestFlow();
 
-    if (isGuest) {
-      final totalsString = prefs.getString('guestTotals');
-      final initial = totalsString != null
-          ? DailyTotals.fromJson(jsonDecode(totalsString))
-          : fallbackInitial;
-
-      Map<String, dynamic> guestLogs = const {};
-      final logsString = prefs.getString('guestLogs');
-      if (logsString != null) {
-        try {
-          guestLogs = jsonDecode(logsString);
-        } catch (e) {
-          debugPrint('❌ Error decoding guest logs: $e');
-          guestLogs = const {};
-        }
-      }
-
-      final completed = _aggregateLogs(guestLogs);
-      final remaining = _remainingFrom(initial, completed);
-      final totalCompleted = _totalCompleted(completed);
+    if (useGuest) {
+      final totals = await _guestRepo.loadMissedTotals() ?? fallbackInitial;
+      final logs = await _guestRepo.loadLogs();
+      final completed = _aggregateLogs(logs);
+      final remaining = _remainingFrom(totals, completed);
+      final totalCompleted = _sum(completed);
 
       return DashboardLoadResult(
-        initial: initial,
+        initial: totals,
         remaining: remaining,
         totalCompleted: totalCompleted,
         isGuest: true,
-        guestLogs: guestLogs,
+        guestLogs: logs,
       );
     }
 
-    final user = _auth.currentUser;
-    if (user == null) {
-      return DashboardLoadResult(
-        initial: fallbackInitial,
-        remaining: fallbackInitial,
-        totalCompleted: 0,
-        isGuest: false,
-      );
-    }
+    final missedTotals = await _userRepo.loadMissedTotals() ?? fallbackInitial;
+    final logs = await _userRepo.loadLogs();
+    final completed = _aggregateLogs(logs);
+    final remaining = _remainingFrom(missedTotals, completed);
+    final totalCompleted = _sum(completed);
 
-    try {
-      final doc = await _firestore.collection('Users').doc(user.uid).get();
-      if (!doc.exists) {
-        return DashboardLoadResult(
-          initial: fallbackInitial,
-          remaining: fallbackInitial,
-          totalCompleted: 0,
-          isGuest: false,
-        );
-      }
-
-      final data = doc.data() ?? {};
-      final prayerPlan = Map<String, dynamic>.from(data['prayerPlan'] ?? {});
-      final missed =
-          Map<String, dynamic>.from(prayerPlan['missedPrayers'] ?? {});
-      final logs = Map<String, dynamic>.from(data['logs'] ?? {});
-
-      final initial = DailyTotals(
-        fajr: _asInt(missed['fajr']),
-        dhuhr: _asInt(missed['dhuhr']),
-        asr: _asInt(missed['asr']),
-        maghrib: _asInt(missed['maghrib']),
-        isha: _asInt(missed['isha']),
-      );
-
-      final completed = _aggregateLogs(logs);
-      final remaining = _remainingFrom(initial, completed);
-      final totalCompleted = _totalCompleted(completed);
-
-      return DashboardLoadResult(
-        initial: initial,
-        remaining: remaining,
-        totalCompleted: totalCompleted,
-        isGuest: false,
-      );
-    } catch (e) {
-      debugPrint('❌ Error loading dashboard data: $e');
-      return DashboardLoadResult(
-        initial: fallbackInitial,
-        remaining: fallbackInitial,
-        totalCompleted: 0,
-        isGuest: false,
-      );
-    }
+    return DashboardLoadResult(
+      initial: missedTotals,
+      remaining: remaining,
+      totalCompleted: totalCompleted,
+      isGuest: false,
+    );
   }
 
   Future<Map<String, int>> loadGuestCompletionTotals() async {
-    final prefs = await SharedPreferences.getInstance();
-    final logsString = prefs.getString('guestLogs');
-
-    if (logsString == null) {
-      return {
-        'fajr': 0,
-        'dhuhr': 0,
-        'asr': 0,
-        'maghrib': 0,
-        'isha': 0,
-      };
-    }
-
-    try {
-      final decoded = jsonDecode(logsString);
-      if (decoded is Map<String, dynamic>) {
-        return _aggregateLogs(decoded);
-      }
-    } catch (e) {
-      debugPrint('❌ Error decoding guest logs: $e');
-    }
-
-    return {
-      'fajr': 0,
-      'dhuhr': 0,
-      'asr': 0,
-      'maghrib': 0,
-      'isha': 0,
-    };
+    final logs = await _guestRepo.loadLogs();
+    return _aggregateLogs(logs);
   }
 
   Future<Map<String, int>> loadUserCompletionTotals() async {
-    final user = _auth.currentUser;
-    if (user == null) {
-      return {
-        'fajr': 0,
-        'dhuhr': 0,
-        'asr': 0,
-        'maghrib': 0,
-        'isha': 0,
-      };
-    }
-
-    try {
-      final snapshot = await _firestore.collection('Users').doc(user.uid).get();
-      final data = snapshot.data() ?? {};
-      final logs = Map<String, dynamic>.from(data['logs'] ?? {});
-      return _aggregateLogs(logs);
-    } catch (e) {
-      debugPrint('❌ Error loading user completion totals: $e');
-      return {
-        'fajr': 0,
-        'dhuhr': 0,
-        'asr': 0,
-        'maghrib': 0,
-        'isha': 0,
-      };
-    }
+    final logs = await _userRepo.loadLogs();
+    return _aggregateLogs(logs);
   }
 
   Future<Map<String, dynamic>> logGuestPrayer(
     String prayerKey,
     Map<String, dynamic> currentLogs,
   ) async {
-    final prefs = await SharedPreferences.getInstance();
     final dateKey = DateFormat('dd-MM-yyyy').format(DateTime.now());
-    final todayLog = Map<String, dynamic>.from(currentLogs[dateKey] ?? {
+    final updatedLogs = Map<String, dynamic>.from(currentLogs);
+    final todayLog = Map<String, dynamic>.from(updatedLogs[dateKey] ?? {
       'fajr': 0,
       'dhuhr': 0,
       'asr': 0,
@@ -198,37 +100,131 @@ class DashboardService {
     });
 
     todayLog[prayerKey] = (todayLog[prayerKey] ?? 0) + 1;
-    final updatedLogs = Map<String, dynamic>.from(currentLogs);
     updatedLogs[dateKey] = todayLog;
 
-    await prefs.setString('guestLogs', jsonEncode(updatedLogs));
+    await _guestRepo.saveLogs(updatedLogs);
     return updatedLogs;
   }
 
   Future<void> logUserPrayer(String prayerKey) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
+    await _userRepo.appendLogEntry(prayerKey);
+  }
 
-    try {
-      final userRef = _firestore.collection('Users').doc(user.uid);
-      final snapshot = await userRef.get();
-      final data = snapshot.data() ?? {};
-      final logs = Map<String, dynamic>.from(data['logs'] ?? {});
-      final dateKey = DateFormat('dd-MM-yyyy').format(DateTime.now());
-      final todayLog = Map<String, dynamic>.from(logs[dateKey] ?? {
+  Future<Map<String, dynamic>> loadGuestLogs() => _guestRepo.loadLogs();
+
+  Future<Map<String, dynamic>> loadUserLogs() => _userRepo.loadLogs();
+
+  Future<Map<String, int>> loadMissedTotals({required bool isGuest}) async {
+    if (isGuest) {
+      final totals = await _guestRepo.loadMissedTotals();
+      if (totals == null) {
+        return const {
+          'fajr': 0,
+          'dhuhr': 0,
+          'asr': 0,
+          'maghrib': 0,
+          'isha': 0,
+        };
+      }
+      return totals.toMap();
+    }
+
+    final totals = await _userRepo.loadMissedTotals();
+    if (totals == null) {
+      return const {
         'fajr': 0,
         'dhuhr': 0,
         'asr': 0,
         'maghrib': 0,
         'isha': 0,
-      });
-
-      todayLog[prayerKey] = (todayLog[prayerKey] ?? 0) + 1;
-      logs[dateKey] = todayLog;
-      await userRef.update({'logs': logs});
-    } catch (e) {
-      debugPrint('❌ Error logging prayer: $e');
+      };
     }
+    return totals.toMap();
+  }
+
+  Future<void> updateGuestLogs(Map<String, dynamic> logs) =>
+      _guestRepo.saveLogs(logs);
+
+  Map<String, int> aggregateLogs(Map<String, dynamic> logs) =>
+      _aggregateLogs(logs);
+
+  Future<void> resetFirestoreData() => _userRepo.resetData();
+
+  Future<void> resetLocalGuestData() => _guestRepo.resetData();
+
+  Future<void> clearLocalStorage({bool keepGuestFlag = false}) =>
+      _guestRepo.clearStorage(keepGuestFlag: keepGuestFlag);
+
+  Future<String> getSelectedLanguage() async {
+    final code = await _guestRepo.loadLanguageCode();
+    final langCode = code ?? 'ar';
+    return langCode == 'ar' ? 'Arabic' : 'English';
+  }
+
+  Future<void> setSelectedLanguage(String langCode) =>
+      _guestRepo.saveLanguageCode(langCode);
+
+  Future<Map<String, int>> getCompletedCountsByPrayer({
+    required bool isGuest,
+  }) async {
+    final logs = isGuest ? await _guestRepo.loadLogs() : await _userRepo.loadLogs();
+    return _aggregateLogs(logs);
+  }
+
+  Future<void> saveMissedPrayers(
+    DailyTotals totals, {
+    bool? isGuest,
+  }) async {
+    final guestFlow = isGuest ?? await _shouldUseGuestFlow();
+
+    if (guestFlow) {
+      await _guestRepo.saveMissedTotals(totals);
+      await _guestRepo.markProgress();
+      return;
+    }
+
+    await _userRepo.saveMissedTotals(totals);
+  }
+
+  Future<void> saveDailyPlan(
+    Map<String, int> dailyPlan, {
+    bool? isGuest,
+  }) async {
+    final guestFlow = isGuest ?? await _shouldUseGuestFlow();
+
+    if (guestFlow) {
+      await _guestRepo.saveDailyPlan(dailyPlan);
+      await _guestRepo.markProgress();
+      return;
+    }
+
+    await _userRepo.saveDailyPlan(dailyPlan);
+  }
+
+  Future<Map<String, int>> loadCompletedCounts({required bool isGuest}) async {
+    return isGuest
+        ? loadGuestCompletionTotals()
+        : loadUserCompletionTotals();
+  }
+
+  Future<void> enableGuestMode() => _guestRepo.enableGuestMode();
+
+  Future<bool> useGuestFlow() => _shouldUseGuestFlow();
+
+  Future<void> signOut() => _userRepo.signOut();
+
+  Future<void> changeLanguage(BuildContext context, String langCode) async {
+    await _guestRepo.saveLanguageCode(langCode);
+    MyApp.setLocale(context, Locale(langCode));
+  }
+
+  // ------------------------------
+  // Internal helpers
+  // ------------------------------
+
+  Future<bool> _shouldUseGuestFlow() async {
+    final isGuestFlag = await _guestRepo.isGuest();
+    return isGuestFlag || !_userRepo.isSignedIn;
   }
 
   Map<String, int> _aggregateLogs(Map<String, dynamic> rawLogs) {
@@ -298,82 +294,7 @@ class DashboardService {
     if (value is num) return value.toInt();
     return 0;
   }
+
+  int _sum(Map<String, int> values) =>
+      values.values.fold<int>(0, (previous, current) => previous + current);
 }
-  Future<void> resetGuestData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final lang = prefs.getString('language_code') ?? 'ar';
-    await prefs.clear();
-    await prefs.setBool('isGuest', true);
-    await prefs.setString('language_code', lang);
-    await prefs.remove('guestTotals');
-    await prefs.remove('guestPerDay');
-    await prefs.remove('guestLogs');
-  }
-
-  Future<void> resetUserData() async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    try {
-      final userRef = _firestore.collection('Users').doc(user.uid);
-      await userRef.update({
-        'prayerPlan.missedPrayers': {
-          'fajr': 0,
-          'dhuhr': 0,
-          'asr': 0,
-          'maghrib': 0,
-          'isha': 0,
-        },
-        'prayerPlan.dailyPlan': {
-          'fajr': 0,
-          'dhuhr': 0,
-          'asr': 0,
-          'maghrib': 0,
-          'isha': 0,
-        },
-        'logs': {},
-      });
-    } catch (e) {
-      debugPrint('❌ Error resetting user data: $e');
-    }
-  }
-
-  Future<void> clearLocalStorage({bool keepGuestFlag = false}) async {
-    final prefs = await SharedPreferences.getInstance();
-    final lang = prefs.getString('language_code') ?? 'ar';
-    await prefs.clear();
-    if (keepGuestFlag) {
-      await prefs.setBool('isGuest', true);
-      await prefs.setString('language_code', lang);
-    }
-  }
-
-  Future<void> saveMissedPrayers(DailyTotals totals, {required bool isGuest}) async {
-    if (isGuest) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('guestTotals', jsonEncode(totals.toJson()));
-      return;
-    }
-
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    try {
-      await _firestore.collection('Users').doc(user.uid).update({
-        'prayerPlan.missedPrayers': totals.toMap(),
-      });
-    } catch (e) {
-      debugPrint('❌ Error saving missed prayers: $e');
-    }
-  }
-
-  Future<Map<String, int>> loadCompletedCounts({required bool isGuest}) async {
-    if (isGuest) {
-      return loadGuestCompletionTotals();
-    }
-    return loadUserCompletionTotals();
-  }
-
-  int _totalCompleted(Map<String, int> completed) {
-    return completed.values.fold(0, (a, b) => a + b);
-  }

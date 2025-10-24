@@ -1,12 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'Dashboard/home_dashboard.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:qadaa_prayer_tracker/core/services/dashboard_service.dart';
 
 class DailyPlan extends StatefulWidget {
   final DailyTotals totals;
@@ -128,39 +125,8 @@ class _DailyPlanState extends State<DailyPlan> {
     }
 
     // 🔹 Determine mode (guest or user)
-    final prefs = await SharedPreferences.getInstance();
-    final isGuest = prefs.getBool('isGuest') ?? false;
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (isGuest || user == null) {
-      // 🟡 Guest Mode → Save locally
-      await _saveDailyPlanLocally(perDay);
-
-      if (widget.fromSettings) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(loc.dailyPlanUpdated)),
-          );
-          Navigator.pop(context, perDay);
-        }
-      } else {
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => HomeDashboard(
-                initial: widget.totals,
-                perDay: perDay,
-              ),
-            ),
-          );
-        }
-      }
-      return;
-    }
-
-    // 🔵 Logged-in user → Save to Firestore
-    await _saveDailyPlanToFirestore(perDay);
+    final useGuestFlow = await _dashboardService.useGuestFlow();
+    await _dashboardService.saveDailyPlan(perDay, isGuest: useGuestFlow);
 
     if (widget.fromSettings) {
       if (mounted) {
@@ -170,43 +136,14 @@ class _DailyPlanState extends State<DailyPlan> {
         Navigator.pop(context, perDay);
       }
     } else {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => HomeDashboard(
-              initial: widget.totals,
-              perDay: perDay,
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  /// 🔹 Save guest plan locally (JSON-based, consistent with main.dart)
-  Future<void> _saveDailyPlanLocally(Map<String, int> dailyPlan) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('guestPerDay', jsonEncode(dailyPlan));
-    await prefs.setBool('isGuestFirstTime', false);
-    debugPrint('✅ Daily plan saved locally for guest user');
-  }
-
-  Future<void> _saveDailyPlanToFirestore(Map<String, int> dailyPlan) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    try {
-      await FirebaseFirestore.instance
-          .collection('Users')
-          .doc(user.uid)
-          .update({
-        'prayerPlan.createdAt': FieldValue.serverTimestamp(),
-        'prayerPlan.dailyPlan': dailyPlan,
-      });
-      debugPrint('✅ Daily plan saved for ${user.email}');
-    } catch (e) {
-      debugPrint('❌ Error saving daily plan: $e');
+      if (!mounted) return;
+      final route = MaterialPageRoute(
+        builder: (_) => HomeDashboard(
+          initial: widget.totals,
+          perDay: perDay,
+        ),
+      );
+      Navigator.pushReplacement(context, route);
     }
   }
 
@@ -337,3 +274,4 @@ class _DailyPlanState extends State<DailyPlan> {
     );
   }
 }
+  final DashboardService _dashboardService = DashboardService();

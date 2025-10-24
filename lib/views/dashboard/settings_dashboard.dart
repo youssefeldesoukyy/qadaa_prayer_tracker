@@ -7,7 +7,6 @@ import 'package:qadaa_prayer_tracker/Views/qadaa_missed.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qadaa_prayer_tracker/Views/Dashboard/edit_logged_prayers.dart';
 import 'package:qadaa_prayer_tracker/core/services/dashboard_service.dart';
-import 'package:qadaa_prayer_tracker/main.dart' show MyApp;
 
 class SettingsDashboard extends StatefulWidget {
   final DailyTotals initial;
@@ -15,7 +14,7 @@ class SettingsDashboard extends StatefulWidget {
   final Map<String, int>? perDay;
   final VoidCallback? onDataChanged;
 
-  SettingsDashboard({
+  const SettingsDashboard({
     super.key,
     required this.initial,
     required this.remaining,

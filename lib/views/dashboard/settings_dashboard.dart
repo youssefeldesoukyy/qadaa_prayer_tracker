@@ -96,7 +96,7 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
       context,
       MaterialPageRoute(
         builder: (_) => DailyPlan(
-          totals: _currentInitial,
+          totals: widget.remaining, // ✅ Pass remaining instead of initial
           perDay: widget.perDay,
           fromSettings: true,
         ),
@@ -121,13 +121,15 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
 
     if (updatedTotals != null) {
       // ✅ Validate that missed prayers >= completed prayers for each prayer type
-      final completedCounts = await _dashboardService.getCompletedCountsByPrayer(isGuest: _isGuest);
+      final completedCounts =
+          await _dashboardService.getCompletedCountsByPrayer(isGuest: _isGuest);
 
       // Check each prayer type individually
       if (updatedTotals.fajr < (completedCounts['fajr'] ?? 0).toDouble() ||
           updatedTotals.dhuhr < (completedCounts['dhuhr'] ?? 0).toDouble() ||
           updatedTotals.asr < (completedCounts['asr'] ?? 0).toDouble() ||
-          updatedTotals.maghrib < (completedCounts['maghrib'] ?? 0).toDouble() ||
+          updatedTotals.maghrib <
+              (completedCounts['maghrib'] ?? 0).toDouble() ||
           updatedTotals.isha < (completedCounts['isha'] ?? 0).toDouble()) {
         final loc = AppLocalizations.of(context)!;
         await _showValidationAlert(loc, completedCounts, updatedTotals);
@@ -145,7 +147,8 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
       });
 
       // ✅ Save the updated missed prayers to storage
-      await _dashboardService.saveMissedPrayers(updatedTotals, isGuest: _isGuest);
+      await _dashboardService.saveMissedPrayers(updatedTotals,
+          isGuest: _isGuest);
 
       // ✅ Notify home dashboard to refresh
       widget.onDataChanged?.call();
@@ -184,9 +187,9 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
 
   // ✅ Build validation message showing which prayer types have issues
   String _buildValidationMessage(
-      Map<String, int> completedCounts,
-      DailyTotals missedTotals,
-      ) {
+    Map<String, int> completedCounts,
+    DailyTotals missedTotals,
+  ) {
     final loc = AppLocalizations.of(context)!;
     final issues = <String>[];
 

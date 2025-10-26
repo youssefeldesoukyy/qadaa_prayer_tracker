@@ -83,7 +83,8 @@ class _StatsDashboardState extends State<StatsDashboard> {
         ? _completedTotals['isha'] ?? 0
         : getCompleted(initial.isha, remaining.isha);
 
-    final totalCompleted = fajrCompleted + dhuhrCompleted + asrCompleted + maghribCompleted + ishaCompleted;
+    final totalCompleted =
+        fajrCompleted + dhuhrCompleted + asrCompleted + maghribCompleted + ishaCompleted;
     final totalRemaining = remaining.sum;
 
     String percentStr(int completed, int total) {
@@ -112,15 +113,24 @@ class _StatsDashboardState extends State<StatsDashboard> {
 
     DateTime? prayerFinishDate(int remainingCount, int? perDayCount) {
       if (perDayCount == null || perDayCount == 0) return null;
+      if (remainingCount == 0) return null; // Already finished
       final days = (remainingCount / perDayCount).ceil();
       return DateTime.now().add(Duration(days: days));
     }
 
-    final fajrFinish = prayerFinishDate(remaining.fajr, perDay['fajr']);
-    final dhuhrFinish = prayerFinishDate(remaining.dhuhr, perDay['dhuhr']);
-    final asrFinish = prayerFinishDate(remaining.asr, perDay['asr']);
-    final maghribFinish = prayerFinishDate(remaining.maghrib, perDay['maghrib']);
-    final ishaFinish = prayerFinishDate(remaining.isha, perDay['isha']);
+    String getFinishDateString(int remainingCount, int? perDayCount) {
+      if (remainingCount == 0) return loc.finished;
+      final date = prayerFinishDate(remainingCount, perDayCount);
+      if (date == null) return '–';
+      return fmtDate(date);
+    }
+
+    final fajrFinish = getFinishDateString(remaining.fajr, perDay['fajr']);
+    final dhuhrFinish = getFinishDateString(remaining.dhuhr, perDay['dhuhr']);
+    final asrFinish = getFinishDateString(remaining.asr, perDay['asr']);
+    final maghribFinish =
+        getFinishDateString(remaining.maghrib, perDay['maghrib']);
+    final ishaFinish = getFinishDateString(remaining.isha, perDay['isha']);
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -180,7 +190,8 @@ class _StatsDashboardState extends State<StatsDashboard> {
                     label: loc.fajr,
                     count: '$fajrCompleted/${initial.fajr}',
                     percent: percentStr(fajrCompleted, initial.fajr),
-                    finishDate: fajrFinish != null ? fmtDate(fajrFinish) : '–',
+                    finishDate: fajrFinish,
+                    isFinished: remaining.fajr == 0,
                   ),
                   _breakdownRow(
                     context,
@@ -188,7 +199,8 @@ class _StatsDashboardState extends State<StatsDashboard> {
                     label: loc.dhuhr,
                     count: '$dhuhrCompleted/${initial.dhuhr}',
                     percent: percentStr(dhuhrCompleted, initial.dhuhr),
-                    finishDate: dhuhrFinish != null ? fmtDate(dhuhrFinish) : '–',
+                    finishDate: dhuhrFinish,
+                    isFinished: remaining.dhuhr == 0,
                   ),
                   _breakdownRow(
                     context,
@@ -196,7 +208,8 @@ class _StatsDashboardState extends State<StatsDashboard> {
                     label: loc.asr,
                     count: '$asrCompleted/${initial.asr}',
                     percent: percentStr(asrCompleted, initial.asr),
-                    finishDate: asrFinish != null ? fmtDate(asrFinish) : '–',
+                    finishDate: asrFinish,
+                    isFinished: remaining.asr == 0,
                   ),
                   _breakdownRow(
                     context,
@@ -204,7 +217,8 @@ class _StatsDashboardState extends State<StatsDashboard> {
                     label: loc.maghrib,
                     count: '$maghribCompleted/${initial.maghrib}',
                     percent: percentStr(maghribCompleted, initial.maghrib),
-                    finishDate: maghribFinish != null ? fmtDate(maghribFinish) : '–',
+                    finishDate: maghribFinish,
+                    isFinished: remaining.maghrib == 0,
                   ),
                   _breakdownRow(
                     context,
@@ -212,7 +226,8 @@ class _StatsDashboardState extends State<StatsDashboard> {
                     label: loc.isha,
                     count: '$ishaCompleted/${initial.isha}',
                     percent: percentStr(ishaCompleted, initial.isha),
-                    finishDate: ishaFinish != null ? fmtDate(ishaFinish) : '–',
+                    finishDate: ishaFinish,
+                    isFinished: remaining.isha == 0,
                   ),
                 ],
               ),
@@ -280,6 +295,7 @@ class _StatsDashboardState extends State<StatsDashboard> {
         required String count,
         required String percent,
         required String finishDate,
+        required bool isFinished,
       }) {
     final loc = AppLocalizations.of(context)!;
 
@@ -300,7 +316,7 @@ class _StatsDashboardState extends State<StatsDashboard> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${loc.finish}: $finishDate', // ✅ localized label
+                  isFinished ? finishDate : '${loc.finish}: $finishDate',
                   style: const TextStyle(
                     color: Colors.black45,
                     fontSize: 13,

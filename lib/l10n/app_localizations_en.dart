@@ -422,6 +422,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get finish => 'Finish';
 
   @override
+  String get finished => 'Finished';
+
+  @override
   String get youCannotExceed => 'You cannot exceed the missed prayers count';
 
   @override

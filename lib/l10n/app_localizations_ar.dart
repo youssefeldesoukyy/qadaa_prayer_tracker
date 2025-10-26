@@ -315,7 +315,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get signUp => 'إنشاء حساب';
 
   @override
-  String get signUpWelcome => 'أنشئ حسابك في متتبع صلوات القضاء ✨';
+  String get signUpWelcome => 'أنشئ حسابك في متتبع صLcut القضاء ✨';
 
   @override
   String get signUpTagline => 'نظّم صلواتك الفائتة بخطة تناسبك.';
@@ -417,6 +417,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get finish => 'تنتهي';
+
+  @override
+  String get finished => 'انتهت';
 
   @override
   String get youCannotExceed => 'لا يمكنك تجاوز عدد الصلوات الفائتة';

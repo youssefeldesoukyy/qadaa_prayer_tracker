@@ -139,6 +139,7 @@
   "editLogs": "Edit Logged Prayers",
   "saveChanges": "Save Changes",
   "finish": "Finish",
+  "finished": "Finished",
   "youCannotExceed": "You cannot exceed the missed prayers count",
   "missedPrayersFor": "missed prayers for",
   "youAlreadyLoggedAll": "You already logged all {prayer} prayers ✅",

@@ -902,6 +902,12 @@ abstract class AppLocalizations {
   /// **'Finish'**
   String get finish;
 
+  /// No description provided for @finished.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished'**
+  String get finished;
+
   /// No description provided for @youCannotExceed.
   ///
   /// In en, this message translates to:

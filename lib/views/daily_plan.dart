@@ -29,6 +29,7 @@ class _DailyPlanState extends State<DailyPlan> {
   final _asrPerDay = TextEditingController();
   final _maghribPerDay = TextEditingController();
   final _ishaPerDay = TextEditingController();
+  final DashboardService _dashboardService = DashboardService();
 
   @override
   void initState() {
@@ -180,7 +181,7 @@ class _DailyPlanState extends State<DailyPlan> {
               hintText: '0',
               hintStyle: const TextStyle(color: Colors.grey),
               contentPadding:
-              const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                  const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide(color: Colors.grey.shade400),
@@ -207,6 +208,18 @@ class _DailyPlanState extends State<DailyPlan> {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
       resizeToAvoidBottomInset: true,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          loc.setYourDailyPlan,
+          style: const TextStyle(color: Colors.black),
+        ),
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -274,4 +287,3 @@ class _DailyPlanState extends State<DailyPlan> {
     );
   }
 }
-  final DashboardService _dashboardService = DashboardService();

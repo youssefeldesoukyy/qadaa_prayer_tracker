@@ -10,7 +10,11 @@ class QadaaMissed extends StatefulWidget {
   final DailyTotals? initialTotals; // ✅ Add initial data
   final bool isEditing; // ✅ Add flag to distinguish editing vs creating
 
-  const QadaaMissed({super.key, this.fromGuest = false, this.initialTotals, this.isEditing = false});
+  const QadaaMissed(
+      {super.key,
+      this.fromGuest = false,
+      this.initialTotals,
+      this.isEditing = false});
 
   @override
   State<QadaaMissed> createState() => _QadaaMissedState();
@@ -40,10 +44,10 @@ class _QadaaMissedState extends State<QadaaMissed> {
     if (widget.initialTotals != null) {
       // ✅ Smart mode detection: if all values are equal, likely from time period
       final allEqual = widget.initialTotals!.fajr == widget.initialTotals!.dhuhr &&
-                      widget.initialTotals!.dhuhr == widget.initialTotals!.asr &&
-                      widget.initialTotals!.asr == widget.initialTotals!.maghrib &&
-                      widget.initialTotals!.maghrib == widget.initialTotals!.isha;
-      
+          widget.initialTotals!.dhuhr == widget.initialTotals!.asr &&
+          widget.initialTotals!.asr == widget.initialTotals!.maghrib &&
+          widget.initialTotals!.maghrib == widget.initialTotals!.isha;
+
       if (allEqual && widget.initialTotals!.fajr > 0) {
         // Time period mode - only populate time fields
         _convertToTimePeriod(widget.initialTotals!.fajr);
@@ -59,14 +63,14 @@ class _QadaaMissedState extends State<QadaaMissed> {
       }
     }
   }
-  
+
   void _convertToTimePeriod(int totalDays) {
     // Simple conversion: try to break down total days into years, months, days
     final years = totalDays ~/ 365;
     final remainingAfterYears = totalDays % 365;
     final months = remainingAfterYears ~/ 30;
     final days = remainingAfterYears % 30;
-    
+
     _years.text = years.toString();
     _months.text = months.toString();
     _days.text = days.toString();
@@ -94,6 +98,15 @@ class _QadaaMissedState extends State<QadaaMissed> {
     final loc = AppLocalizations.of(context)!;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: Stack(
         children: [
           Positioned.fill(
@@ -114,7 +127,7 @@ class _QadaaMissedState extends State<QadaaMissed> {
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
+                        color: Colors.black.withOpacity(0.08),
                         blurRadius: 30,
                         offset: const Offset(0, 18),
                       ),
@@ -236,7 +249,7 @@ class _QadaaMissedState extends State<QadaaMissed> {
           hintText: '0',
           hintStyle: const TextStyle(color: Colors.grey),
           contentPadding:
-          const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+              const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide(color: Colors.grey.shade400),

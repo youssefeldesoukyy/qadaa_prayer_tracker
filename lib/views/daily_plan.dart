@@ -209,6 +209,7 @@ class _DailyPlanState extends State<DailyPlan> {
       backgroundColor: const Color(0xFFF6F7FB),
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
@@ -242,14 +243,6 @@ class _DailyPlanState extends State<DailyPlan> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    loc.setYourDailyPlan,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
                   const SizedBox(height: 8),
                   Text(
                     loc.howManyQadaa,

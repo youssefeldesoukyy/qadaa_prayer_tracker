@@ -168,6 +168,7 @@ class _EditLoggedPrayersState extends State<EditLoggedPrayers> {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(

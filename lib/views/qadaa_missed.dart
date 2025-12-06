@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:qadaa_prayer_tracker/core/app_colors.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'package:qadaa_prayer_tracker/Views/daily_plan.dart';
@@ -98,93 +99,78 @@ class _QadaaMissedState extends State<QadaaMissed> {
     final loc = AppLocalizations.of(context)!;
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/sign_in_background.jpg',
-              fit: BoxFit.cover,
-            ),
-          ),
-          SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Container(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
-                        blurRadius: 30,
-                        offset: const Offset(0, 18),
-                      ),
-                    ],
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(12),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 600),
+            padding: const EdgeInsets.all(12),
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Back button - RTL-aware
+                  Align(
+                    alignment: Localizations.localeOf(context).languageCode == 'ar'
+                        ? Alignment.centerRight
+                        : Alignment.centerLeft,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back, color: AppColors.text),
+                      onPressed: () => Navigator.pop(context),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        loc.qadaaTracker,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Color(0xFF2563EB),
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
+                  const SizedBox(height: 8),
+                        // Text(
+                        //   loc.appTitle,
+                        //   textAlign: TextAlign.center,
+                        //   style: const TextStyle(
+                        //     color: AppColors.text,
+                        //     fontSize: 32,
+                        //     fontWeight: FontWeight.bold,
+                        //   ),
+                        // ),
+                        const SizedBox(height: 8),
+                        Text(
+                          loc.qadaaDescription,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: AppColors.text),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        loc.qadaaDescription,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.black54),
-                      ),
-                      const SizedBox(height: 24),
-                      _buildModeSwitch(loc),
-                      const SizedBox(height: 20),
-                      if (_mode == QadaMode.timePeriod)
-                        _buildTimeFields(loc)
-                      else
-                        _buildManualFields(loc),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2563EB),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 18),
-                            shape: const StadiumBorder(),
-                          ),
-                          onPressed: _onCreatePlanPressed,
-                          child: Text(
-                            widget.isEditing
-                                ? loc.updateMissedPrayers
-                                : loc.createMyPlan,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                        const SizedBox(height: 24),
+                        _buildModeSwitch(loc),
+                        const SizedBox(height: 20),
+                        if (_mode == QadaMode.timePeriod)
+                          _buildTimeFields(loc)
+                        else
+                          _buildManualFields(loc),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 18),
+                              shape: const StadiumBorder(),
+                            ),
+                            onPressed: _onCreatePlanPressed,
+                            child: Text(
+                              widget.isEditing
+                                  ? loc.updateMissedPrayers
+                                  : loc.createMyPlan,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
             ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -204,6 +190,22 @@ class _QadaaMissedState extends State<QadaaMissed> {
       onSelectionChanged: (s) => setState(() => _mode = s.first),
       showSelectedIcon: false,
       style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.selected)) {
+              return AppColors.primary;
+            }
+            return AppColors.accent.withValues(alpha: 0.1);
+          },
+        ),
+        foregroundColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.selected)) {
+              return Colors.white;
+            }
+            return AppColors.text;
+          },
+        ),
         minimumSize: WidgetStateProperty.all(const Size.fromHeight(48)),
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -235,28 +237,40 @@ class _QadaaMissedState extends State<QadaaMissed> {
   }
 
   Widget _textField(String label, TextEditingController controller) {
+    final border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(18),
+      borderSide: BorderSide(
+        color: AppColors.secondary.withValues(alpha: 0.3),
+      ),
+    );
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TextField(
         controller: controller,
         keyboardType: TextInputType.number,
         inputFormatters: _digitsOnly,
-        cursorColor: const Color(0xFF2563EB),
+        cursorColor: AppColors.primary,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(color: Colors.black54),
-          floatingLabelStyle: const TextStyle(color: Color(0xFF2563EB)),
-          hintText: '0',
-          hintStyle: const TextStyle(color: Colors.grey),
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(color: Colors.grey.shade400),
+          labelStyle: const TextStyle(fontSize: 13, color: AppColors.text),
+          floatingLabelStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.primary,
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Color(0xFF2563EB), width: 2),
+          hintText: '0',
+          hintStyle: TextStyle(
+            color: AppColors.text.withValues(alpha: 0.5),
+            fontSize: 13,
+          ),
+          filled: true,
+          fillColor: AppColors.accent.withValues(alpha: 0.1),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+          enabledBorder: border,
+          focusedBorder: border.copyWith(
+            borderSide: const BorderSide(color: AppColors.primary, width: 2),
           ),
         ),
       ),
@@ -275,7 +289,7 @@ class _QadaaMissedState extends State<QadaaMissed> {
 
       if (totalDays == 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(loc.pleaseEnterValidPeriod)),
+          AppColors.styledSnackBar(loc.pleaseEnterValidPeriod),
         );
         return;
       }

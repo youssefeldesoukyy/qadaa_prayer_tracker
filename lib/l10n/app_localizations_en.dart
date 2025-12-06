@@ -12,7 +12,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Itmam';
 
   @override
-  String get qadaaTracker => 'Qadaa Tracker';
+  String get appVersion => 'v1.0';
 
   @override
   String get qadaaDescription =>
@@ -85,12 +85,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String noPrayerRemaining(Object prayer) {
     return 'No $prayer remaining.';
   }
-
-  @override
-  String get logQadaaPrayer => 'Log Qadaa Prayer';
-
-  @override
-  String get whichPrayer => 'Which prayer did you complete?';
 
   @override
   String get totalProgress => 'Total Progress';
@@ -248,9 +242,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get allDataReset => 'All data has been reset.';
 
   @override
-  String get appVersion => 'Qadaa Tracker v1.0';
-
-  @override
   String get barrierDismiss => 'Dismiss';
 
   @override
@@ -297,13 +288,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signIn => 'Sign In';
 
   @override
-  String get or => 'or';
-
-  @override
   String get orContinueWith => 'Or continue with';
-
-  @override
-  String get signInWelcome => 'Welcome to Qadaa Tracker 👋';
 
   @override
   String get signInTagline => 'Track your missed prayers effortlessly.';
@@ -312,21 +297,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forgotPassword => 'Forgot Password?';
 
   @override
-  String get noAccount => 'Don’t have an account?';
+  String get noAccount => 'Don\'t have an account?';
 
   @override
   String get signUp => 'Sign Up';
 
   @override
-  String get signUpWelcome => 'Create your Qadaa Tracker account ✨';
-
-  @override
   String get signUpTagline =>
-      'Stay on top of your missed prayers with a personalized plan.';
-
-  @override
-  String get signUpSubtitle =>
-      'Create your account to start tracking your prayers.';
+      'Follow your missed prayers with a personalized plan.';
 
   @override
   String get firstName => 'First Name';
@@ -434,10 +412,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String youAlreadyLoggedAll(Object prayer) {
     return 'You already logged all $prayer prayers ✅';
   }
-
-  @override
-  String get youAlreadyLoggedAllDescription =>
-      'Shown when user reaches max logged prayers';
 
   @override
   String get validationError => 'Validation Error';

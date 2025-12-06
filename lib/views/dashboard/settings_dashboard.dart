@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qadaa_prayer_tracker/core/app_colors.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'package:qadaa_prayer_tracker/Views/daily_plan.dart';
@@ -167,12 +168,13 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child:
-                Text(loc.cancel, style: const TextStyle(color: Colors.black)),
+                Text(loc.cancel, style: const TextStyle(color: AppColors.text)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
+              shape: const StadiumBorder(),
             ),
             onPressed: () {
               Navigator.pop(ctx);
@@ -243,7 +245,7 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child:
-                Text(loc.cancel, style: const TextStyle(color: Colors.black)),
+                Text(loc.cancel, style: const TextStyle(color: AppColors.text)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -266,7 +268,7 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
                 );
 
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(loc.allDataReset)),
+                  AppColors.styledSnackBar(loc.allDataReset),
                 );
               }
             },
@@ -308,7 +310,7 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child:
-                Text(loc.cancel, style: const TextStyle(color: Colors.black)),
+                Text(loc.cancel, style: const TextStyle(color: AppColors.text)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -328,7 +330,7 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
                 );
 
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(loc.loggedOut)),
+                  AppColors.styledSnackBar(loc.loggedOut),
                 );
               }
             },
@@ -346,18 +348,25 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
 
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-        child: Column(
+    return Container(
+      color: Colors.white,
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(loc.settings,
-                style:
-                    const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+            Text(
+              loc.settings,
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                color: AppColors.text,
+              ),
+            ),
             const SizedBox(height: 4),
             Text(loc.preferences,
-                style: const TextStyle(color: Colors.black54)),
+                style: const TextStyle(color: AppColors.text)),
             const SizedBox(height: 24),
 
             _statusCard(loc),
@@ -379,18 +388,17 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
                 label: Text(_isGuest ? loc.signIn : loc.logout),
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
-                      _isGuest ? const Color(0xFF2563EB) : Colors.grey.shade800,
+                      _isGuest ? AppColors.primary : Colors.grey.shade800,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  shape: const StadiumBorder(),
                 ),
               ),
             ),
             const SizedBox(height: 32),
             _footer(loc),
           ],
+        ),
         ),
       ),
     );
@@ -405,22 +413,27 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
           children: [
             Row(
               children: [
-                const Icon(Icons.info_outline, color: Colors.black54),
+                const Icon(Icons.info_outline, color: AppColors.text),
                 const SizedBox(width: 8),
-                Text(loc.currentStatus,
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w700)),
+                Text(
+                  loc.currentStatus,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.text,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 16),
             _statusRow(loc.totalMissed, '${_currentInitial.sum} ${loc.prayers}',
-                Colors.black),
+                AppColors.text),
             const SizedBox(height: 8),
             _statusRow(
-                loc.completed, '$_totalCompleted ${loc.prayers}', Colors.green),
+                loc.completed, '$_totalCompleted ${loc.prayers}', AppColors.primary),
             const SizedBox(height: 8),
             _statusRow(loc.remainingPrayers, '$_totalRemaining ${loc.prayers}',
-                const Color(0xFF2563EB)),
+                AppColors.secondary),
             const SizedBox(height: 16),
             // 🟢 New Button
             SizedBox(
@@ -430,7 +443,8 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
                 icon: const Icon(Icons.edit, size: 18),
                 label: Text(loc.editMissedPrayers),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF2563EB),
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -447,7 +461,8 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
                 icon: const Icon(Icons.edit_calendar, size: 18),
                 label: Text(loc.editLogs),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF2563EB),
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -463,12 +478,17 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(loc.dailyPlan,
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+            Text(
+              loc.dailyPlan,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.text,
+              ),
+            ),
             const SizedBox(height: 4),
             Text(loc.howManyQadaa,
-                style: const TextStyle(color: Colors.black54)),
+                style: const TextStyle(color: AppColors.text)),
             const SizedBox(height: 16),
             _planRow(loc.fajr, widget.perDay?['fajr'] ?? 1, loc),
             _planRow(loc.dhuhr, widget.perDay?['dhuhr'] ?? 1, loc),
@@ -483,7 +503,8 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
                 icon: const Icon(Icons.edit, size: 18),
                 label: Text(loc.editPlan),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF2563EB),
+                  foregroundColor: AppColors.primary,
+                  side: BorderSide(color: AppColors.primary),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -501,11 +522,16 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
           children: [
             Row(
               children: [
-                const Icon(Icons.language, color: Colors.black54),
+                const Icon(Icons.language, color: AppColors.text),
                 const SizedBox(width: 8),
-                Text(loc.language,
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w700)),
+                Text(
+                  loc.language,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.text,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -543,7 +569,7 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(color: Colors.red.shade300),
         ),
         child: Column(
@@ -577,13 +603,32 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
   Widget _footer(AppLocalizations loc) => Center(
         child: Column(
           children: [
-            Text(loc.appVersion,
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 4),
-            Text(loc.footerSubtitle,
-                style: const TextStyle(color: Colors.black54),
-                textAlign: TextAlign.center),
+            Image.asset(
+              'assets/icons/Itmam_logo.png',
+              height: 80,
+              fit: BoxFit.contain,
+            ),
+            Text(
+              loc.appTitle,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w600,
+                color: AppColors.text,
+              ),
+            ),
+            Text(
+              loc.footerSubtitle,
+              style: const TextStyle(color: AppColors.text),
+              textAlign: TextAlign.center,
+            ),
+            Text(
+              loc.appVersion,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w300,
+                color: AppColors.text,
+              ),
+            ),
           ],
         ),
       );
@@ -592,9 +637,11 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade200),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: AppColors.secondary.withValues(alpha: 0.3),
+          ),
         ),
         child: child,
       );
@@ -602,12 +649,18 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
   Widget _statusRow(String label, String value, Color valueColor) => Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 16)),
-          Text(value,
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: valueColor)),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 16, color: AppColors.text),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: valueColor,
+            ),
+          ),
         ],
       );
 
@@ -616,9 +669,14 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(prayer, style: const TextStyle(fontSize: 16)),
-            Text('$count ${loc.perDay}',
-                style: const TextStyle(fontSize: 16, color: Colors.black54)),
+            Text(
+              prayer,
+              style: const TextStyle(fontSize: 16, color: AppColors.text),
+            ),
+            Text(
+              '$count ${loc.perDay}',
+              style: const TextStyle(fontSize: 16, color: AppColors.text),
+            ),
           ],
         ),
       );
@@ -630,17 +688,18 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF2563EB) : Colors.white,
+            color: isSelected ? AppColors.primary : Colors.white,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-                color: isSelected
-                    ? const Color(0xFF2563EB)
-                    : Colors.grey.shade300),
+              color: isSelected
+                  ? AppColors.primary
+                  : AppColors.secondary.withValues(alpha: 0.3),
+            ),
           ),
           child: Text(language,
               textAlign: TextAlign.center,
               style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.black,
+                  color: isSelected ? Colors.white : AppColors.text,
                   fontWeight: FontWeight.w600)),
         ),
       );

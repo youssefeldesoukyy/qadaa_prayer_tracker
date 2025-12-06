@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:qadaa_prayer_tracker/core/app_colors.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'package:qadaa_prayer_tracker/views/dashboard/home_dashboard.dart';
 import 'package:qadaa_prayer_tracker/views/qadaa_missed.dart';
@@ -84,7 +85,11 @@ class AuthWrapper extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+            body: Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primary,
+              ),
+            ),
           );
         } else if (snapshot.hasError) {
           debugPrint('❌ Error: ${snapshot.error}');

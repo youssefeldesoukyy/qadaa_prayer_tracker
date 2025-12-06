@@ -12,7 +12,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get appTitle => 'إتمام';
 
   @override
-  String get qadaaTracker => 'متتبع صلوات القضاء';
+  String get appVersion => 'الإصدار 1.0';
 
   @override
   String get qadaaDescription => 'تتبع وأكمل صلواتك الفائتة بوضوح وطمأنينة.';
@@ -69,26 +69,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dailyPlanUpdated => 'تم تحديث الخطة اليومية بنجاح!';
 
   @override
-  String get prayerLogged => 'تم تسجيل الصلاة! 🙌';
+  String get prayerLogged => 'أنت تقترب!';
 
   @override
-  String get nothingToLog => 'لا يوجد شيء لتسجيله';
+  String get nothingToLog => 'مبروك!';
 
   @override
   String prayerCompleted(Object prayer) {
-    return 'تم إكمال صلاة $prayer.';
+    return 'قضيتَ صلاة $prayer';
   }
 
   @override
   String noPrayerRemaining(Object prayer) {
-    return 'لا توجد صلاة $prayer متبقية.';
+    return 'أنهيتَ ما عليك';
   }
-
-  @override
-  String get logQadaaPrayer => 'تسجيل صلاة قضاء';
-
-  @override
-  String get whichPrayer => 'ما الصلاة التي أكملتها؟';
 
   @override
   String get totalProgress => 'إجمالي التقدم';
@@ -246,9 +240,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get allDataReset => 'تمت إعادة تعيين جميع البيانات.';
 
   @override
-  String get appVersion => 'متتبع صلوات القضاء الإصدار 1.0';
-
-  @override
   String get barrierDismiss => 'إغلاق';
 
   @override
@@ -294,13 +285,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get signIn => 'تسجيل الدخول';
 
   @override
-  String get or => 'أو';
-
-  @override
   String get orContinueWith => 'أو تابع باستخدام';
-
-  @override
-  String get signInWelcome => 'مرحبًا بك في متتبع صلوات القضاء 👋';
 
   @override
   String get signInTagline => 'تتبع صلواتك الفائتة بسهولة.';
@@ -315,13 +300,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get signUp => 'إنشاء حساب';
 
   @override
-  String get signUpWelcome => 'أنشئ حسابك في متتبع صLcut القضاء ✨';
-
-  @override
   String get signUpTagline => 'نظّم صلواتك الفائتة بخطة تناسبك.';
-
-  @override
-  String get signUpSubtitle => 'أنشئ حسابك لبدء تتبع صلواتك.';
 
   @override
   String get firstName => 'الاسم الأول';
@@ -431,10 +410,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String youAlreadyLoggedAll(Object prayer) {
     return 'لقد قمت بتسجيل جميع صلوات $prayer الفائتة ✅';
   }
-
-  @override
-  String get youAlreadyLoggedAllDescription =>
-      'تظهر عندما يُسجل المستخدم كل الصلوات الفائتة';
 
   @override
   String get validationError => 'خطأ في التحقق';

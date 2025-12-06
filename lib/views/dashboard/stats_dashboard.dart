@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qadaa_prayer_tracker/core/app_colors.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'package:qadaa_prayer_tracker/core/services/dashboard_service.dart';
@@ -132,20 +133,26 @@ class _StatsDashboardState extends State<StatsDashboard> {
         getFinishDateString(remaining.maghrib, perDay['maghrib']);
     final ishaFinish = getFinishDateString(remaining.isha, perDay['isha']);
 
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-        child: Column(
+    return Container(
+      color: Colors.white,
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               loc.statistics,
-              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                color: AppColors.text,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               loc.totalProgress,
-              style: const TextStyle(color: Colors.black54),
+              style: const TextStyle(color: AppColors.text),
             ),
             const SizedBox(height: 20),
 
@@ -163,7 +170,7 @@ class _StatsDashboardState extends State<StatsDashboard> {
                   value: '$totalRemaining',
                   label: loc.remainingPrayers,
                   icon: Icons.access_time,
-                  iconColor: const Color(0xFF2563EB),
+                  iconColor: AppColors.secondary,
                 ),
               ],
             ),
@@ -180,6 +187,7 @@ class _StatsDashboardState extends State<StatsDashboard> {
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
+                      color: AppColors.text,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -234,6 +242,7 @@ class _StatsDashboardState extends State<StatsDashboard> {
             ),
           ],
         ),
+        ),
       ),
     );
   }
@@ -247,15 +256,17 @@ class _StatsDashboardState extends State<StatsDashboard> {
         required String value,
         required String label,
         required IconData icon,
-        Color iconColor = const Color(0xFF2563EB),
+        Color iconColor = AppColors.primary,
       }) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: AppColors.secondary.withValues(alpha: 0.3),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -263,14 +274,22 @@ class _StatsDashboardState extends State<StatsDashboard> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(value,
-                    style: const TextStyle(
-                        fontSize: 28, fontWeight: FontWeight.w800)),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.text,
+                  ),
+                ),
                 Icon(icon, color: iconColor),
               ],
             ),
             const SizedBox(height: 8),
-            Text(label, style: const TextStyle(color: Colors.black54)),
+            Text(
+              label,
+              style: const TextStyle(color: AppColors.text),
+            ),
           ],
         ),
       ),
@@ -282,8 +301,10 @@ class _StatsDashboardState extends State<StatsDashboard> {
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: Colors.grey.shade300),
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(
+        color: AppColors.secondary.withValues(alpha: 0.3),
+      ),
     ),
     child: child,
   );
@@ -303,7 +324,7 @@ class _StatsDashboardState extends State<StatsDashboard> {
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         children: [
-          Icon(icon, color: const Color(0xFF2563EB)),
+          Icon(icon, color: AppColors.primary),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -312,13 +333,16 @@ class _StatsDashboardState extends State<StatsDashboard> {
                 Text(
                   label,
                   style: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 16),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                    color: AppColors.text,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   isFinished ? finishDate : '${loc.finish}: $finishDate',
                   style: const TextStyle(
-                    color: Colors.black45,
+                    color: AppColors.text,
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
                   ),
@@ -328,13 +352,13 @@ class _StatsDashboardState extends State<StatsDashboard> {
           ),
           Text(
             count,
-            style: const TextStyle(color: Colors.black54),
+            style: const TextStyle(color: AppColors.text),
           ),
           const SizedBox(width: 12),
           Text(
             percent,
             style: const TextStyle(
-              color: Color(0xFF2563EB),
+              color: AppColors.primary,
               fontWeight: FontWeight.w700,
             ),
           ),

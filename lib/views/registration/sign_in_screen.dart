@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:qadaa_prayer_tracker/core/app_colors.dart';
 import 'package:qadaa_prayer_tracker/core/services/auth_exceptions.dart';
 import 'package:qadaa_prayer_tracker/core/services/auth_flow_result.dart';
 import 'package:qadaa_prayer_tracker/core/services/auth_service.dart';
@@ -77,22 +78,28 @@ class _SignInScreenState extends State<SignInScreen> {
 
     try {
       final user = await _authService.signInWithGoogle();
+      if (!mounted) return;
+      
       final result = await _authService.determinePostSignIn(user);
       if (!mounted) return;
       _handleAuthResult(result);
     } on AuthCancelledException {
-      // User aborted the Google flow.
+      // User aborted the Google flow - just reset loading state
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     } on FirebaseAuthException catch (e) {
       debugPrint('Google sign-in Firebase error: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.googleSignInFailed)),
+        AppColors.styledSnackBar(loc.googleSignInFailed),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('Google sign-in error: $e');
+      debugPrint('Stack trace: $stackTrace');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.googleSignInFailed)),
+        AppColors.styledSnackBar(loc.googleSignInFailed),
       );
     } finally {
       if (mounted) {
@@ -112,22 +119,28 @@ class _SignInScreenState extends State<SignInScreen> {
 
     try {
       final user = await _authService.signInWithApple();
+      if (!mounted) return;
+      
       final result = await _authService.determinePostSignIn(user);
       if (!mounted) return;
       _handleAuthResult(result);
     } on AuthCancelledException {
-      // User aborted the Apple flow.
+      // User aborted the Apple flow - just reset loading state
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     } on FirebaseAuthException catch (e) {
       debugPrint('Apple sign-in Firebase error: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.loginFailed)),
+        AppColors.styledSnackBar(loc.appleSignInFailed),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('Apple sign-in error: $e');
+      debugPrint('Stack trace: $stackTrace');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.loginFailed)),
+        AppColors.styledSnackBar(loc.appleSignInFailed),
       );
     } finally {
       if (mounted) {
@@ -153,7 +166,7 @@ class _SignInScreenState extends State<SignInScreen> {
       debugPrint('Guest sign-in error: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.loginFailed)),
+        AppColors.styledSnackBar(loc.loginFailed),
       );
     } finally {
       if (mounted) {
@@ -203,16 +216,37 @@ class _SignInScreenState extends State<SignInScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(loc.resetPasswordTitle),
+          title: Text(
+            loc.resetPasswordTitle,
+            style: const TextStyle(color: AppColors.text),
+          ),
           content: TextField(
             controller: emailController,
             keyboardType: TextInputType.emailAddress,
-            cursorColor: const Color(0xFF2563EB),
+            cursorColor: AppColors.primary,
             decoration: InputDecoration(
               labelText: loc.emailLabel,
-              border: const OutlineInputBorder(),
-              focusedBorder: const OutlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF2563EB), width: 2),
+              labelStyle: const TextStyle(color: AppColors.text),
+              filled: true,
+              fillColor: AppColors.accent.withValues(alpha: 0.1),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(18),
+                borderSide: BorderSide(
+                  color: AppColors.secondary.withValues(alpha: 0.3),
+                ),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(18),
+                borderSide: BorderSide(
+                  color: AppColors.secondary.withValues(alpha: 0.3),
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(18),
+                borderSide: const BorderSide(
+                  color: AppColors.primary,
+                  width: 2,
+                ),
               ),
             ),
           ),
@@ -220,14 +254,18 @@ class _SignInScreenState extends State<SignInScreen> {
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(loc.cancel,
-                  style: const TextStyle(color: Color(0xFF2563EB))),
+                  style: const TextStyle(color: AppColors.primary)),
             ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
               onPressed: () async {
                 final email = emailController.text.trim();
                 if (email.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(loc.enterEmailWarning)),
+                    AppColors.styledSnackBar(loc.enterEmailWarning),
                   );
                   return;
                 }
@@ -236,23 +274,23 @@ class _SignInScreenState extends State<SignInScreen> {
                   if (!context.mounted) return;
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(loc.resetEmailSent)),
+                    AppColors.styledSnackBar(loc.resetEmailSent),
                   );
                 } on FirebaseAuthException catch (e) {
                   String msg = loc.resetFailed;
                   if (e.code == 'user-not-found') msg = loc.emailNotFound;
                   ScaffoldMessenger.of(context)
-                      .showSnackBar(SnackBar(content: Text(msg)));
+                      .showSnackBar(AppColors.styledSnackBar(msg));
                 } catch (e) {
                   debugPrint('Reset password error: $e');
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(loc.resetFailed)),
+                    AppColors.styledSnackBar(loc.resetFailed),
                   );
                 }
               },
               child: Text(loc.send,
-                  style: const TextStyle(color: Color(0xFF2563EB))),
+                  style: const TextStyle(color: Colors.white)),
             ),
           ],
         );
@@ -263,61 +301,58 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    const themeColor = Color(0xFF2563EB);
     final inputBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(18),
-      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+      borderSide: BorderSide(color: AppColors.secondary.withValues(alpha: 0.3)),
     );
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/sign_in_background.jpg',
-              fit: BoxFit.cover,
-            ),
-          ),
+          children: [
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 420),
-                  child: Container(
+                  child: Padding(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(40),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.08),
-                          blurRadius: 40,
-                          offset: const Offset(0, 18),
-                        ),
-                      ],
-                    ),
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          loc.signInWelcome,
-                          style: const TextStyle(
-                            color: Color(0xFF0F172A),
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.2,
+                        // Logo
+                        Center(
+                          child: Image.asset(
+                            'assets/icons/Itmam_logo.png',
+                            height: 120,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        const SizedBox(height: 1),
+                        Center(
+                          child: Text(
+                            loc.appTitle,
+                            style: const TextStyle(
+                              color: AppColors.text,
+                              fontSize: 32,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          loc.signInTagline,
-                          style: const TextStyle(
-                            color: Color(0xFF475569),
-                            fontSize: 15,
-                            height: 1.5,
+                        Center(
+                          child: Text(
+                            loc.signInTagline,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: AppColors.text,
+                              fontSize: 13,
+                              height: 1.5,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 28),
@@ -329,20 +364,24 @@ class _SignInScreenState extends State<SignInScreen> {
                               vertical: 12,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFFF1F2),
+                              color: AppColors.accent.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: AppColors.primary.withValues(alpha: 0.3),
+                                width: 1,
+                              ),
                             ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(Icons.error_outline,
-                                    color: Color(0xFFDC2626)),
+                                Icon(Icons.error_outline,
+                                    color: AppColors.primary),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
                                     _errorMessage!,
                                     style: const TextStyle(
-                                      color: Color(0xFFB91C1C),
+                                      color: AppColors.text,
                                     ),
                                   ),
                                 ),
@@ -351,19 +390,20 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
                         TextField(
                           controller: _emailOrPhoneController,
-                          cursorColor: themeColor,
+                          cursorColor: AppColors.primary,
                           decoration: InputDecoration(
                             labelText: loc.emailLabel,
+                            labelStyle: const TextStyle(color: AppColors.text),
                             prefixIcon: const Icon(
                               Icons.mail_outline_rounded,
-                              color: Color(0xFF475569),
+                              color: AppColors.text,
                             ),
                             filled: true,
-                            fillColor: const Color(0xFFF8FBFF),
+                            fillColor: AppColors.accent.withValues(alpha: 0.1),
                             enabledBorder: inputBorder,
                             focusedBorder: inputBorder.copyWith(
                               borderSide: const BorderSide(
-                                color: themeColor,
+                                color: AppColors.primary,
                                 width: 2,
                               ),
                             ),
@@ -373,30 +413,31 @@ class _SignInScreenState extends State<SignInScreen> {
                         TextField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
-                          cursorColor: themeColor,
+                          cursorColor: AppColors.primary,
                           decoration: InputDecoration(
                             labelText: loc.passwordLabel,
+                            labelStyle: const TextStyle(color: AppColors.text),
                             prefixIcon: const Icon(
                               Icons.lock_outline_rounded,
-                              color: Color(0xFF475569),
+                              color: AppColors.text,
                             ),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword
                                     ? Icons.visibility_off_outlined
                                     : Icons.visibility_outlined,
-                                color: const Color(0xFF475569),
+                                color: AppColors.text,
                               ),
                               onPressed: () => setState(() {
                                 _obscurePassword = !_obscurePassword;
                               }),
                             ),
                             filled: true,
-                            fillColor: const Color(0xFFF8FBFF),
+                            fillColor: AppColors.accent.withValues(alpha: 0.1),
                             enabledBorder: inputBorder,
                             focusedBorder: inputBorder.copyWith(
                               borderSide: const BorderSide(
-                                color: themeColor,
+                                color: AppColors.primary,
                                 width: 2,
                               ),
                             ),
@@ -407,7 +448,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           child: TextButton(
                             onPressed: _resetPassword,
                             style: TextButton.styleFrom(
-                              foregroundColor: themeColor,
+                              foregroundColor: AppColors.primary,
                               padding:
                                   const EdgeInsets.symmetric(vertical: 8.0),
                             ),
@@ -426,7 +467,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               padding:
                                   const EdgeInsets.symmetric(vertical: 18),
                               shape: const StadiumBorder(),
-                              backgroundColor: themeColor,
+                              backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
                             ),
                             child: Text(
@@ -449,8 +490,8 @@ class _SignInScreenState extends State<SignInScreen> {
                                 style: OutlinedButton.styleFrom(
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 14),
-                                  side: const BorderSide(
-                                    color: Color(0xFFE2E8F0),
+                                  side: BorderSide(
+                                    color: AppColors.primary.withValues(alpha: 0.5),
                                   ),
                                   shape: const StadiumBorder(),
                                 ),
@@ -466,7 +507,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                       loc.google,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w600,
-                                        color: Color(0xFF0F172A),
+                                        color: AppColors.text,
                                       ),
                                     ),
                                   ],
@@ -480,8 +521,8 @@ class _SignInScreenState extends State<SignInScreen> {
                                 style: OutlinedButton.styleFrom(
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 14),
-                                  side: const BorderSide(
-                                    color: Color(0xFFE2E8F0),
+                                  side: BorderSide(
+                                    color: AppColors.primary.withValues(alpha: 0.5),
                                   ),
                                   shape: const StadiumBorder(),
                                 ),
@@ -497,7 +538,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                       loc.apple,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w600,
-                                        color: Color(0xFF0F172A),
+                                        color: AppColors.text,
                                       ),
                                     ),
                                   ],
@@ -515,27 +556,27 @@ class _SignInScreenState extends State<SignInScreen> {
                               padding:
                                   const EdgeInsets.symmetric(vertical: 16),
                               side: BorderSide(
-                                color: themeColor.withValues(alpha: 0.35),
+                                color: AppColors.primary.withValues(alpha: 0.5),
                               ),
                               shape: const StadiumBorder(),
                             ),
                             child: Text(
                               loc.continueAsGuest,
                               style: const TextStyle(
-                                color: themeColor,
+                                color: AppColors.primary,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 12),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
                               loc.noAccount,
                               style: const TextStyle(
-                                color: Color(0xFF64748B),
+                                color: AppColors.text,
                               ),
                             ),
                             TextButton(
@@ -550,7 +591,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               child: Text(
                                 loc.signUp,
                                 style: const TextStyle(
-                                  color: themeColor,
+                                  color: AppColors.primary,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -564,16 +605,16 @@ class _SignInScreenState extends State<SignInScreen> {
               ),
             ),
           ),
-          if (_isLoading)
-            Container(
-              color: Colors.black.withValues(alpha: 0.35),
-              child: const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            if (_isLoading)
+              Container(
+                color: AppColors.text.withValues(alpha: 0.5),
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
                 ),
               ),
-          ),
-        ],
+          ],
       ),
     );
   }
@@ -584,7 +625,7 @@ class _SignInScreenState extends State<SignInScreen> {
         Expanded(
           child: Container(
             height: 1,
-            color: const Color(0xFFE2E8F0),
+                                    color: AppColors.secondary.withValues(alpha: 0.3),
           ),
         ),
         Padding(
@@ -592,7 +633,7 @@ class _SignInScreenState extends State<SignInScreen> {
           child: Text(
             label,
             style: const TextStyle(
-              color: Color(0xFF94A3B8),
+              color: AppColors.text,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -600,7 +641,7 @@ class _SignInScreenState extends State<SignInScreen> {
         Expanded(
           child: Container(
             height: 1,
-            color: const Color(0xFFE2E8F0),
+                                    color: AppColors.secondary.withValues(alpha: 0.3),
           ),
         ),
       ],

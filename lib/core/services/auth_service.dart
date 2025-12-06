@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -15,7 +17,12 @@ class AuthService {
     GoogleSignIn? googleSignIn,
   })  : _auth = auth ?? FirebaseAuth.instance,
         _firestore = firestore ?? FirebaseFirestore.instance,
-        _googleSignIn = googleSignIn ?? GoogleSignIn(scopes: const ['email']);
+        _googleSignIn = googleSignIn ??
+            GoogleSignIn(
+              scopes: const ['email'],
+              // iOS client ID from Firebase
+              clientId: '578896216985-h8ol6ju3gkvlg3ffgm75phd34qe3fdfc.apps.googleusercontent.com',
+            );
 
   final FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
@@ -33,7 +40,12 @@ class AuthService {
   }
 
   Future<User> signInWithGoogle() async {
-    await _googleSignIn.signOut(); // force account chooser every time
+    try {
+      await _googleSignIn.signOut(); // force account chooser every time
+    } catch (e) {
+      // Ignore sign out errors - user might not be signed in
+      debugPrint('Google sign out error (ignored): $e');
+    }
 
     final googleUser = await _googleSignIn.signIn();
     if (googleUser == null) {
@@ -41,6 +53,14 @@ class AuthService {
     }
 
     final googleAuth = await googleUser.authentication;
+    
+    if (googleAuth.accessToken == null || googleAuth.idToken == null) {
+      throw FirebaseAuthException(
+        code: 'missing-credentials',
+        message: 'Google authentication failed: missing tokens',
+      );
+    }
+
     final credential = GoogleAuthProvider.credential(
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
@@ -62,17 +82,41 @@ class AuthService {
   Future<User> signInWithApple() async {
     late AuthorizationCredentialAppleID appleCredential;
     try {
-      appleCredential = await SignInWithApple.getAppleIDCredential(
-        scopes: [
-          AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
-        ],
-      );
+      if (Platform.isAndroid) {
+        // Android requires webAuthenticationOptions
+        appleCredential = await SignInWithApple.getAppleIDCredential(
+          scopes: [
+            AppleIDAuthorizationScopes.email,
+            AppleIDAuthorizationScopes.fullName,
+          ],
+          webAuthenticationOptions: WebAuthenticationOptions(
+            clientId: 'com.example.qadaaPrayerTracker',
+            redirectUri: Uri.parse(
+              'https://qadaatrackerapp-75e01.firebaseapp.com/__/auth/handler',
+            ),
+          ),
+        );
+      } else {
+        // iOS doesn't need webAuthenticationOptions
+        appleCredential = await SignInWithApple.getAppleIDCredential(
+          scopes: [
+            AppleIDAuthorizationScopes.email,
+            AppleIDAuthorizationScopes.fullName,
+          ],
+        );
+      }
     } on SignInWithAppleAuthorizationException catch (e) {
       if (e.code == AuthorizationErrorCode.canceled) {
         throw const AuthCancelledException();
       }
       rethrow;
+    }
+
+    if (appleCredential.identityToken == null) {
+      throw FirebaseAuthException(
+        code: 'missing-credentials',
+        message: 'Apple authentication failed: missing identity token',
+      );
     }
 
     final oauthCredential = OAuthProvider('apple.com').credential(
@@ -186,21 +230,35 @@ class AuthService {
   }
 
   Future<void> _ensureUserDocument(User user) async {
-    final userRef = _firestore.collection('Users').doc(user.uid);
-    final snapshot = await userRef.get();
-    if (snapshot.exists) return;
+    try {
+      final userRef = _firestore.collection('Users').doc(user.uid);
+      final snapshot = await userRef.get();
+      if (snapshot.exists) return;
 
-    final displayName = user.displayName?.trim() ?? '';
-    final parts = displayName.isEmpty ? <String>[] : displayName.split(' ');
-    final firstName = parts.isNotEmpty ? parts.first : '';
-    final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+      final displayName = user.displayName?.trim() ?? '';
+      final parts = displayName.isEmpty ? <String>[] : displayName.split(' ');
+      final firstName = parts.isNotEmpty ? parts.first : '';
+      final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
 
-    await userRef.set({
-      'id': user.uid,
-      'email': user.email,
-      'firstName': firstName,
-      'lastName': lastName,
-      'createdAt': FieldValue.serverTimestamp(),
-    });
+      await userRef.set({
+        'id': user.uid,
+        'email': user.email,
+        'firstName': firstName,
+        'lastName': lastName,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied') {
+        debugPrint('⚠️ Firestore permission denied when ensuring user document. '
+            'This might be due to security rules. Error: ${e.message}');
+        // Continue anyway - the user is authenticated, they just can't access Firestore yet
+        // This will be handled by determinePostSignIn which will return qadaaSetup
+      } else {
+        rethrow;
+      }
+    } catch (e) {
+      debugPrint('Error ensuring user document: $e');
+      // Don't rethrow - allow sign-in to continue
+    }
   }
 }

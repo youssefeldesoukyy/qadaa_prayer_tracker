@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qadaa_prayer_tracker/core/app_colors.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/Views/Dashboard/settings_dashboard.dart';
 import 'package:qadaa_prayer_tracker/Views/Dashboard/stats_dashboard.dart';
@@ -150,7 +151,7 @@ class _HomeDashboardState extends State<HomeDashboard>
       context: context,
       barrierDismissible: true,
       barrierLabel: loc.barrierDismiss,
-      barrierColor: Colors.black.withOpacity(0.4),
+      barrierColor: Colors.black.withValues(alpha: 0.4),
       transitionDuration: const Duration(milliseconds: 200),
       pageBuilder: (ctx, _, __) {
         Future.delayed(const Duration(milliseconds: 750), () {
@@ -172,9 +173,9 @@ class _HomeDashboardState extends State<HomeDashboard>
                 children: [
                   Text(title,
                       style: const TextStyle(
-                          fontWeight: FontWeight.w700, color: Colors.black)),
+                          fontWeight: FontWeight.w700, color: AppColors.text)),
                   const SizedBox(height: 6),
-                  Text(subtitle, style: const TextStyle(color: Colors.black54)),
+                  Text(subtitle, style: const TextStyle(color: AppColors.text)),
                 ],
               ),
             ),
@@ -187,7 +188,11 @@ class _HomeDashboardState extends State<HomeDashboard>
   // ---------------- UI ----------------
   Widget _homePage() {
     final loc = AppLocalizations.of(context)!;
-    if (_isLoading) return const Center(child: CircularProgressIndicator());
+    if (_isLoading) return const Center(
+      child: CircularProgressIndicator(
+        color: AppColors.primary,
+      ),
+    );
 
     final percentText = '${(_progress * 100).floor()}%';
 
@@ -196,12 +201,17 @@ class _HomeDashboardState extends State<HomeDashboard>
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         child: Column(
           children: [
-            Text(loc.qadaaTracker,
-                style:
-                const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+            Text(
+              loc.appTitle,
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                color: AppColors.text,
+              ),
+            ),
             const SizedBox(height: 4),
             Text(loc.totalProgress,
-                style: const TextStyle(color: Colors.black54)),
+                style: const TextStyle(color: AppColors.text)),
             const SizedBox(height: 24),
             SizedBox(
               width: 180,
@@ -215,37 +225,46 @@ class _HomeDashboardState extends State<HomeDashboard>
                     child: CircularProgressIndicator(
                       value: _progress,
                       strokeWidth: 14,
-                      backgroundColor: const Color(0xFFF1F2F4),
-                      color: const Color(0xFF2563EB),
+                      backgroundColor: AppColors.accent.withValues(alpha: 0.1),
+                      color: AppColors.primary,
                     ),
                   ),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(percentText,
-                          style: const TextStyle(
-                              fontSize: 28, fontWeight: FontWeight.w800)),
+                      Text(
+                        percentText,
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.text,
+                        ),
+                      ),
                       const SizedBox(height: 4),
-                      Text(loc.complete,
-                          style: const TextStyle(color: Colors.black54)),
+                      Text(
+                        loc.complete,
+                        style: const TextStyle(color: AppColors.text),
+                      ),
                     ],
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(child: _statCard(loc.totalMissed, '$_totalInitial')),
-                const SizedBox(width: 10),
-                Expanded(
-                    child: _statCard(loc.totalCompleted, '$_totalCompleted',
-                        valueColor: Colors.green)),
-                const SizedBox(width: 10),
-                Expanded(
-                    child: _statCard(loc.remainingPrayers, '$_totalRemaining',
-                        valueColor: const Color(0xFF2563EB))),
-              ],
+            IntrinsicHeight(
+              child: Row(
+                children: [
+                  Expanded(child: _statCard(loc.totalMissed, '$_totalInitial')),
+                  const SizedBox(width: 10),
+                  Expanded(
+                      child: _statCard(loc.totalCompleted, '$_totalCompleted',
+                          valueColor: AppColors.primary)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                      child: _statCard(loc.remainingPrayers, '$_totalRemaining',
+                          valueColor: AppColors.secondary)),
+                ],
+              ),
             ),
             const SizedBox(height: 20),
             _breakdownContainer(loc),
@@ -259,18 +278,29 @@ class _HomeDashboardState extends State<HomeDashboard>
     padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
     decoration: BoxDecoration(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: Colors.grey.shade300),
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(
+        color: AppColors.secondary.withValues(alpha: 0.3),
+      ),
     ),
     child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(value,
-            style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: valueColor ?? Colors.black)),
+        Text(
+          value,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: valueColor ?? AppColors.text,
+          ),
+        ),
         const SizedBox(height: 6),
-        Text(title, style: const TextStyle(color: Colors.black54)),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: AppColors.text),
+        ),
       ],
     ),
   );
@@ -280,15 +310,22 @@ class _HomeDashboardState extends State<HomeDashboard>
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: Colors.grey.shade300),
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(
+        color: AppColors.secondary.withValues(alpha: 0.3),
+      ),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(loc.prayerBreakdown,
-            style:
-            const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+        Text(
+          loc.prayerBreakdown,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: AppColors.text,
+          ),
+        ),
         const SizedBox(height: 10),
         _breakdownRow(Icons.nights_stay_outlined, loc.fajr, _initial.fajr,
             _remaining.fajr, 'fajr'),
@@ -316,49 +353,61 @@ class _HomeDashboardState extends State<HomeDashboard>
       child: InkWell(
         onTap: () => _logOne(key),
         borderRadius: BorderRadius.circular(12),
-        splashColor: const Color(0xFF2563EB).withOpacity(0.1),
+        splashColor: AppColors.primary.withValues(alpha: 0.1),
+        highlightColor: AppColors.primary.withValues(alpha: 0.05),
         child: Container(
           padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
           decoration: BoxDecoration(
-            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE6E8EC)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            border: Border.all(
+              color: AppColors.secondary.withValues(alpha: 0.3),
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Icon(icon, color: const Color(0xFF2563EB)),
+                  Icon(icon, color: AppColors.primary),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       label,
                       style: const TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 16),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        color: AppColors.text,
+                      ),
                     ),
                   ),
                   Text(
                     '$completed/$initial',
-                    style: const TextStyle(color: Colors.black87),
+                    style: const TextStyle(color: AppColors.text),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.chevron_right,
+                    color: AppColors.primary.withValues(alpha: 0.6),
+                    size: 20,
                   ),
                 ],
               ),
               const SizedBox(height: 10),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: LinearProgressIndicator(
-                  value: pct,
-                  minHeight: 8,
-                  backgroundColor: const Color(0xFFF1F2F4),
-                  color: const Color(0xFF2563EB),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: AppColors.secondary.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(
+                    value: pct,
+                    minHeight: 8,
+                    backgroundColor: AppColors.accent.withValues(alpha: 0.1),
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
@@ -366,7 +415,7 @@ class _HomeDashboardState extends State<HomeDashboard>
                 alignment: Alignment.centerRight,
                 child: Text(
                   '$remaining ${loc.remaining}',
-                  style: const TextStyle(color: Colors.black54, fontSize: 13),
+                  style: const TextStyle(color: AppColors.text, fontSize: 13),
                 ),
               ),
             ],
@@ -393,7 +442,7 @@ class _HomeDashboardState extends State<HomeDashboard>
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
+      backgroundColor: Colors.white,
       body: IndexedStack(
         index: _tabIndex,
         children: [
@@ -402,21 +451,51 @@ class _HomeDashboardState extends State<HomeDashboard>
           _settingsPage(),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _tabIndex,
-        onTap: (i) => setState(() => _tabIndex = i),
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF2563EB),
-        unselectedItemColor: Colors.black54,
-        showUnselectedLabels: true,
-        items: [
-          BottomNavigationBarItem(
-              icon: const Icon(Icons.home_outlined), label: loc.home),
-          BottomNavigationBarItem(
-              icon: const Icon(Icons.bar_chart_rounded), label: loc.stats),
-          BottomNavigationBarItem(
-              icon: const Icon(Icons.settings_outlined), label: loc.settings),
-        ],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(
+            top: BorderSide(
+              color: AppColors.secondary.withValues(alpha: 0.2),
+              width: 1,
+            ),
+          ),
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _tabIndex,
+          onTap: (i) => setState(() => _tabIndex = i),
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          selectedItemColor: AppColors.primary,
+          unselectedItemColor: AppColors.text.withValues(alpha: 0.6),
+          selectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 12,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w400,
+            fontSize: 12,
+          ),
+          elevation: 0,
+          showUnselectedLabels: true,
+          items: [
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.home_outlined),
+              activeIcon: const Icon(Icons.home),
+              label: loc.home,
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.bar_chart_rounded),
+              activeIcon: const Icon(Icons.bar_chart),
+              label: loc.stats,
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.settings_outlined),
+              activeIcon: const Icon(Icons.settings),
+              label: loc.settings,
+            ),
+          ],
+        ),
       ),
     );
   }

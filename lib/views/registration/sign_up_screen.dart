@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:qadaa_prayer_tracker/core/app_colors.dart';
 import 'package:qadaa_prayer_tracker/core/services/auth_flow_result.dart';
 import 'package:qadaa_prayer_tracker/core/services/auth_service.dart';
 import 'package:qadaa_prayer_tracker/Views/Dashboard/home_dashboard.dart';
@@ -44,14 +45,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
         password.isEmpty ||
         confirmPassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.fillAllFields)),
+        AppColors.styledSnackBar(loc.fillAllFields),
       );
       return;
     }
 
     if (password != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.passwordsDoNotMatch)),
+        AppColors.styledSnackBar(loc.passwordsDoNotMatch),
       );
       return;
     }
@@ -70,7 +71,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.accountCreated)),
+        AppColors.styledSnackBar(loc.accountCreated),
       );
 
       _handleAuthResult(result);
@@ -86,12 +87,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error)),
+        AppColors.styledSnackBar(error),
       );
     } catch (e) {
       debugPrint('Sign-up error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.somethingWentWrong)),
+        AppColors.styledSnackBar(loc.somethingWentWrong),
       );
     } finally {
       if (mounted) {
@@ -133,26 +134,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   InputDecoration _inputDecoration(String label, IconData icon) {
-    const themeColor = Color(0xFF2563EB);
     final border = OutlineInputBorder(
       borderRadius: BorderRadius.circular(18),
-      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+      borderSide: BorderSide(
+        color: AppColors.secondary.withValues(alpha: 0.3),
+      ),
     );
 
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(fontSize: 13, color: Color(0xFF475569)),
+      labelStyle: const TextStyle(fontSize: 13, color: AppColors.text),
       floatingLabelStyle: const TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
-        color: themeColor,
+        color: AppColors.primary,
       ),
-      prefixIcon: Icon(icon, color: const Color(0xFF475569)),
+      prefixIcon: Icon(icon, color: AppColors.text),
       filled: true,
-      fillColor: const Color(0xFFF8FBFF),
+      fillColor: AppColors.accent.withValues(alpha: 0.1),
       enabledBorder: border,
       focusedBorder: border.copyWith(
-        borderSide: const BorderSide(color: themeColor, width: 2),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
       ),
       contentPadding:
           const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
@@ -162,77 +164,99 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    const themeColor = Color(0xFF2563EB);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/sign_in_background.jpg',
-              fit: BoxFit.cover,
-            ),
-          ),
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                    const EdgeInsets.fromLTRB(12, 0, 12, 32),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 460),
-                  child: Container(
+                  child: Padding(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(40),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.08),
-                          blurRadius: 40,
-                          offset: const Offset(0, 18),
-                        ),
-                      ],
-                    ),
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          loc.signUpWelcome,
-                          style: const TextStyle(
-                            color: Color(0xFF0F172A),
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.2,
+                        // Back button
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back, color: AppColors.text),
+                          onPressed: () => Navigator.pop(context),
+                          padding: EdgeInsets.zero,
+                          alignment: Alignment.centerLeft,
+                          constraints: const BoxConstraints(),
+                        ),
+                        const SizedBox(height: 0),
+                        // Logo
+                        Center(
+                          child: Image.asset(
+                            'assets/icons/Itmam_logo.png',
+                            height: 120,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        const SizedBox(height: 0),
+                        Center(
+                          child: Text(
+                            loc.appTitle,
+                            style: const TextStyle(
+                              color: AppColors.text,
+                              fontSize: 32,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          loc.signUpTagline,
-                          style: const TextStyle(
-                            color: Color(0xFF475569),
-                            fontSize: 15,
-                            height: 1.5,
+                        Center(
+                          child: Text(
+                            loc.signUpTagline,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: AppColors.text,
+                              fontSize: 13,
+                              height: 1.5,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 16),
                         Row(
                           children: [
                             Expanded(
                               child: TextField(
                                 controller: _firstNameController,
-                                cursorColor: themeColor,
+                                cursorColor: AppColors.primary,
                                 decoration: _inputDecoration(
-                                    loc.firstName, Icons.person_outline_rounded),
+                                        loc.firstName, Icons.person_outline_rounded)
+                                    .copyWith(
+                                  labelText: null,
+                                  hintText: loc.firstName,
+                                  hintStyle: const TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.text,
+                                  ),
+                                ),
                               ),
                             ),
-                            const SizedBox(width: 14),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: TextField(
                                 controller: _lastNameController,
-                                cursorColor: themeColor,
+                                cursorColor: AppColors.primary,
                                 decoration: _inputDecoration(
-                                    loc.lastName, Icons.person_outline_rounded),
+                                        loc.lastName, Icons.person_outline_rounded)
+                                    .copyWith(
+                                  labelText: null,
+                                  hintText: loc.lastName,
+                                  hintStyle: const TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.text,
+                                  ),
+                                ),
                               ),
                             ),
                           ],
@@ -241,7 +265,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         TextField(
                           controller: _phoneController,
                           keyboardType: TextInputType.phone,
-                          cursorColor: themeColor,
+                          cursorColor: AppColors.primary,
                           decoration: _inputDecoration(
                               loc.phoneNumber, Icons.call_outlined),
                         ),
@@ -249,7 +273,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         TextField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
-                          cursorColor: themeColor,
+                          cursorColor: AppColors.primary,
                           decoration: _inputDecoration(
                               loc.emailLabel, Icons.mail_outline_rounded),
                         ),
@@ -257,7 +281,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         TextField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
-                          cursorColor: themeColor,
+                          cursorColor: AppColors.primary,
                           decoration: _inputDecoration(
                               loc.passwordLabel, Icons.lock_outline_rounded)
                               .copyWith(
@@ -266,7 +290,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 _obscurePassword
                                     ? Icons.visibility_off_outlined
                                     : Icons.visibility_outlined,
-                                color: const Color(0xFF475569),
+                                color: AppColors.text,
                               ),
                               onPressed: () => setState(
                                   () => _obscurePassword = !_obscurePassword),
@@ -277,7 +301,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         TextField(
                           controller: _confirmPasswordController,
                           obscureText: _obscureConfirmPassword,
-                          cursorColor: themeColor,
+                          cursorColor: AppColors.primary,
                           decoration: _inputDecoration(
                               loc.confirmPassword, Icons.lock_outline_rounded)
                               .copyWith(
@@ -286,7 +310,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 _obscureConfirmPassword
                                     ? Icons.visibility_off_outlined
                                     : Icons.visibility_outlined,
-                                color: const Color(0xFF475569),
+                                color: AppColors.text,
                               ),
                               onPressed: () => setState(() =>
                                   _obscureConfirmPassword =
@@ -302,7 +326,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 18),
                               shape: const StadiumBorder(),
-                              backgroundColor: themeColor,
+                              backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
                             ),
                             child: Text(
@@ -314,28 +338,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 24),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              loc.alreadyHaveAccount,
-                              style: const TextStyle(
-                                color: Color(0xFF64748B),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: Text(
-                                loc.signIn,
-                                style: const TextStyle(
-                                  color: themeColor,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                        // const SizedBox(height: 12),
+                        // Row(
+                        //   mainAxisAlignment: MainAxisAlignment.center,
+                        //   children: [
+                        //     Text(
+                        //       loc.alreadyHaveAccount,
+                        //       style: const TextStyle(
+                        //         color: AppColors.text,
+                        //       ),
+                        //     ),
+                        //     TextButton(
+                        //       onPressed: () => Navigator.pop(context),
+                        //       child: Text(
+                        //         loc.signIn,
+                        //         style: const TextStyle(
+                        //           color: AppColors.primary,
+                        //           fontWeight: FontWeight.w700,
+                        //         ),
+                        //       ),
+                        //     ),
+                        //   ],
+                        // ),
                       ],
                     ),
                   ),
@@ -345,7 +369,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
           if (_isLoading)
             Container(
-              color: Colors.black.withValues(alpha: 0.35),
+              color: AppColors.text.withValues(alpha: 0.5),
               child: const Center(
                 child: CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),

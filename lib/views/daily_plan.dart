@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:qadaa_prayer_tracker/core/app_colors.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'Dashboard/home_dashboard.dart';
@@ -90,7 +91,7 @@ class _DailyPlanState extends State<DailyPlan> {
     final isAllZero = perDay.values.every((v) => v == 0);
     if (isAllZero) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.pleaseEnterValidPeriod)),
+        AppColors.styledSnackBar(loc.pleaseEnterValidPeriod),
       );
       return;
     }
@@ -112,12 +113,10 @@ class _DailyPlanState extends State<DailyPlan> {
       if (value > maxAllowed) {
         final prayerName = _localizedPrayerName(key, loc);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              loc.validationCantExceed(
-                prayerName,
-                maxAllowed.toString(),
-              ),
+          AppColors.styledSnackBar(
+            loc.validationCantExceed(
+              prayerName,
+              maxAllowed.toString(),
             ),
           ),
         );
@@ -132,7 +131,7 @@ class _DailyPlanState extends State<DailyPlan> {
     if (widget.fromSettings) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(loc.dailyPlanUpdated)),
+          AppColors.styledSnackBar(loc.dailyPlanUpdated),
         );
         Navigator.pop(context, perDay);
       }
@@ -162,12 +161,13 @@ class _DailyPlanState extends State<DailyPlan> {
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
+                  color: AppColors.text,
                 ),
               ),
               const Spacer(),
               Text(
                 '$remaining ${loc.remaining}',
-                style: const TextStyle(color: Colors.black54),
+                style: const TextStyle(color: AppColors.text),
               ),
             ],
           ),
@@ -176,20 +176,27 @@ class _DailyPlanState extends State<DailyPlan> {
             controller: c,
             keyboardType: TextInputType.number,
             inputFormatters: _digitsOnly,
-            cursorColor: const Color(0xFF2563EB),
+            cursorColor: AppColors.primary,
             decoration: InputDecoration(
               hintText: '0',
-              hintStyle: const TextStyle(color: Colors.grey),
+              hintStyle: TextStyle(
+                color: AppColors.text.withValues(alpha: 0.5),
+                fontSize: 13,
+              ),
+              filled: true,
+              fillColor: AppColors.accent.withValues(alpha: 0.1),
               contentPadding:
-                  const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                  const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Colors.grey.shade400),
+                borderRadius: BorderRadius.circular(18),
+                borderSide: BorderSide(
+                  color: AppColors.secondary.withValues(alpha: 0.3),
+                ),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(18),
                 borderSide: const BorderSide(
-                  color: Color(0xFF2563EB),
+                  color: AppColors.primary,
                   width: 2,
                 ),
               ),
@@ -206,47 +213,52 @@ class _DailyPlanState extends State<DailyPlan> {
     final t = widget.totals;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
+      backgroundColor: Colors.white,
       resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          loc.setYourDailyPlan,
-          style: const TextStyle(color: Colors.black),
-        ),
-      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
             child: Container(
               constraints: const BoxConstraints(maxWidth: 500),
-              margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade300),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: AppColors.secondary.withValues(alpha: 0.3),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 8),
+                  // Back button and title - same level
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: AppColors.text),
+                        onPressed: () => Navigator.pop(context),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                      Expanded(
+                        child: Text(
+                          loc.setYourDailyPlan,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: AppColors.text,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 48), // Balance the back button width
+                    ],
+                  ),
+                  const SizedBox(height: 16),
                   Text(
                     loc.howManyQadaa,
-                    style: const TextStyle(color: Colors.black54),
+                    style: const TextStyle(color: AppColors.text),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
@@ -259,16 +271,17 @@ class _DailyPlanState extends State<DailyPlan> {
                   ElevatedButton(
                     onPressed: _saveAndGo,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB),
+                      backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      minimumSize: const Size.fromHeight(50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      shape: const StadiumBorder(),
                     ),
                     child: Text(
                       loc.savePlan,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                 ],

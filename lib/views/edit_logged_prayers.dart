@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qadaa_prayer_tracker/core/app_colors.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/core/services/dashboard_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -94,10 +95,8 @@ class _EditLoggedPrayersState extends State<EditLoggedPrayers> {
       final loc = AppLocalizations.of(context)!;
       final prayerName = _localizedPrayerName(key, loc);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            loc.youAlreadyLoggedAll(prayerName),
-          ),
+        AppColors.styledSnackBar(
+          loc.youAlreadyLoggedAll(prayerName),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -166,45 +165,67 @@ class _EditLoggedPrayersState extends State<EditLoggedPrayers> {
     final loc = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
-      appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          loc.editLogs,
-          style: const TextStyle(color: Colors.black87),
-        ),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _buildCard(loc),
-            const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _saveChanges,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.primary,
                 ),
-                child: Text(loc.saveChanges),
+              )
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    // Back button and title - same level
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back, color: AppColors.text),
+                          onPressed: () => Navigator.pop(context),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                        Expanded(
+                          child: Text(
+                            loc.editLogs,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: AppColors.text,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 48), // Balance the back button width
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    _buildCard(loc),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _saveChanges,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          shape: const StadiumBorder(),
+                        ),
+                        child: Text(
+                          loc.saveChanges,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -213,8 +234,10 @@ class _EditLoggedPrayersState extends State<EditLoggedPrayers> {
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: Colors.grey.shade300),
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(
+        color: AppColors.secondary.withValues(alpha: 0.3),
+      ),
     ),
     child: Column(
       children: [
@@ -232,17 +255,26 @@ class _EditLoggedPrayersState extends State<EditLoggedPrayers> {
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label,
-            style:
-            const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.text,
+          ),
+        ),
         Row(
           children: [
             _circleBtn(Icons.remove, () => _decrement(key)),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+            SizedBox(
+              width: 50,
               child: Text(
                 '${_currentTotals[key] ?? 0}',
-                style: const TextStyle(fontSize: 16),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: AppColors.text,
+                ),
               ),
             ),
             _circleBtn(Icons.add, () => _increment(key)),
@@ -260,10 +292,12 @@ class _EditLoggedPrayersState extends State<EditLoggedPrayers> {
       height: 36,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: const Color(0xFFF1F2F4),
-        border: Border.all(color: Colors.grey.shade300),
+        color: AppColors.accent.withValues(alpha: 0.1),
+        border: Border.all(
+          color: AppColors.secondary.withValues(alpha: 0.3),
+        ),
       ),
-      child: Icon(icon, size: 20, color: const Color(0xFF2563EB)),
+      child: Icon(icon, size: 20, color: AppColors.primary),
     ),
   );
 }

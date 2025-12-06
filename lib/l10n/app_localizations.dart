@@ -104,11 +104,11 @@ abstract class AppLocalizations {
   /// **'Itmam'**
   String get appTitle;
 
-  /// No description provided for @qadaaTracker.
+  /// No description provided for @appVersion.
   ///
   /// In en, this message translates to:
-  /// **'Qadaa Tracker'**
-  String get qadaaTracker;
+  /// **'v1.0'**
+  String get appVersion;
 
   /// No description provided for @qadaaDescription.
   ///
@@ -241,18 +241,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No {prayer} remaining.'**
   String noPrayerRemaining(Object prayer);
-
-  /// No description provided for @logQadaaPrayer.
-  ///
-  /// In en, this message translates to:
-  /// **'Log Qadaa Prayer'**
-  String get logQadaaPrayer;
-
-  /// No description provided for @whichPrayer.
-  ///
-  /// In en, this message translates to:
-  /// **'Which prayer did you complete?'**
-  String get whichPrayer;
 
   /// No description provided for @totalProgress.
   ///
@@ -560,12 +548,6 @@ abstract class AppLocalizations {
   /// **'All data has been reset.'**
   String get allDataReset;
 
-  /// No description provided for @appVersion.
-  ///
-  /// In en, this message translates to:
-  /// **'Qadaa Tracker v1.0'**
-  String get appVersion;
-
   /// No description provided for @barrierDismiss.
   ///
   /// In en, this message translates to:
@@ -656,23 +638,11 @@ abstract class AppLocalizations {
   /// **'Sign In'**
   String get signIn;
 
-  /// No description provided for @or.
-  ///
-  /// In en, this message translates to:
-  /// **'or'**
-  String get or;
-
   /// No description provided for @orContinueWith.
   ///
   /// In en, this message translates to:
   /// **'Or continue with'**
   String get orContinueWith;
-
-  /// No description provided for @signInWelcome.
-  ///
-  /// In en, this message translates to:
-  /// **'Welcome to Qadaa Tracker 👋'**
-  String get signInWelcome;
 
   /// No description provided for @signInTagline.
   ///
@@ -689,7 +659,7 @@ abstract class AppLocalizations {
   /// No description provided for @noAccount.
   ///
   /// In en, this message translates to:
-  /// **'Don’t have an account?'**
+  /// **'Don\'t have an account?'**
   String get noAccount;
 
   /// No description provided for @signUp.
@@ -698,23 +668,11 @@ abstract class AppLocalizations {
   /// **'Sign Up'**
   String get signUp;
 
-  /// No description provided for @signUpWelcome.
-  ///
-  /// In en, this message translates to:
-  /// **'Create your Qadaa Tracker account ✨'**
-  String get signUpWelcome;
-
   /// No description provided for @signUpTagline.
   ///
   /// In en, this message translates to:
-  /// **'Stay on top of your missed prayers with a personalized plan.'**
+  /// **'Follow your missed prayers with a personalized plan.'**
   String get signUpTagline;
-
-  /// No description provided for @signUpSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Create your account to start tracking your prayers.'**
-  String get signUpSubtitle;
 
   /// No description provided for @firstName.
   ///
@@ -925,12 +883,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You already logged all {prayer} prayers ✅'**
   String youAlreadyLoggedAll(Object prayer);
-
-  /// No description provided for @youAlreadyLoggedAllDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Shown when user reaches max logged prayers'**
-  String get youAlreadyLoggedAllDescription;
 
   /// No description provided for @validationError.
   ///

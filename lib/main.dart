@@ -5,6 +5,7 @@ import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/views/registration/auth_wrapper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'dart:ui' as ui;
 import 'firebase_options.dart';
 
 void main() async {

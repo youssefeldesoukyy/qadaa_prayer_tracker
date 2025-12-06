@@ -15,5 +15,21 @@ class AppColors {
 
   /// Accent color: #f8e39c
   static const Color accent = Color(0xFFF8E39C);
+
+  /// Creates a styled SnackBar with app colors
+  static SnackBar styledSnackBar(String message, {Duration? duration}) {
+    return SnackBar(
+      content: Text(
+        message,
+        style: const TextStyle(color: Colors.white),
+      ),
+      backgroundColor: primary,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      duration: duration ?? const Duration(seconds: 3),
+    );
+  }
 }
 

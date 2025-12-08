@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>578896216985-h8ol6ju3gkvlg3ffgm75phd34qe3fdfc.apps.googleusercontent.com</string>
+	<string>578896216985-q9841cuponhh34phsfjdvih6thidfpb6.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.578896216985-h8ol6ju3gkvlg3ffgm75phd34qe3fdfc</string>
+	<string>com.googleusercontent.apps.578896216985-q9841cuponhh34phsfjdvih6thidfpb6</string>
 	<key>ANDROID_CLIENT_ID</key>
 	<string>578896216985-ivnrn9jk363ktb4l0m28mnusno9edcf0.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
@@ -15,7 +15,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.qadaaPrayerTracker</string>
+	<string>com.example.itmam</string>
 	<key>PROJECT_ID</key>
 	<string>qadaatrackerapp-75e01</string>
 	<key>STORAGE_BUCKET</key>
@@ -31,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:578896216985:ios:cdcc9aaf53db1d309c4908</string>
+	<string>1:578896216985:ios:64f25c4487756e409c4908</string>
 </dict>
 </plist>

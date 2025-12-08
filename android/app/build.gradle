@@ -9,12 +9,12 @@ plugins {
 }
 
 android {
-    namespace "com.example.qadaa_prayer_tracker"
+    namespace "com.example.itmam"
     compileSdk 36
     ndkVersion "27.0.12077973"
 
     defaultConfig {
-        applicationId "com.example.qadaa_prayer_tracker"
+        applicationId "com.example.itmam"
         minSdkVersion flutter.minSdkVersion
         targetSdk 36
         versionCode flutter.versionCode

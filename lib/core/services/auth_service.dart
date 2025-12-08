@@ -90,7 +90,7 @@ class AuthService {
             AppleIDAuthorizationScopes.fullName,
           ],
           webAuthenticationOptions: WebAuthenticationOptions(
-            clientId: 'com.example.qadaaPrayerTracker',
+            clientId: 'com.example.itmam',
             redirectUri: Uri.parse(
               'https://qadaatrackerapp-75e01.firebaseapp.com/__/auth/handler',
             ),

@@ -63,6 +63,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '578896216985',
     projectId: 'qadaatrackerapp-75e01',
     storageBucket: 'qadaatrackerapp-75e01.firebasestorage.app',
-    iosBundleId: 'com.example.qadaaPrayerTracker',
+    iosBundleId: 'com.example.itmam',
   );
 }

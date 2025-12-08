@@ -7,20 +7,12 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:578896216985:android:fe98021377d76ae59c4908",
+        "mobilesdk_app_id": "1:578896216985:android:c9665f6d037ad23f9c4908",
         "android_client_info": {
-          "package_name": "com.example.qadaa_prayer_tracker"
+          "package_name": "com.example.itmam"
         }
       },
       "oauth_client": [
-        {
-          "client_id": "578896216985-ivnrn9jk363ktb4l0m28mnusno9edcf0.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.qadaa_prayer_tracker",
-            "certificate_hash": "6a8cbf6a079a588061882a5145df342ca7c6d4f8"
-          }
-        },
         {
           "client_id": "578896216985-cl1fjlogdm65vna2rjllismoginkotlv.apps.googleusercontent.com",
           "client_type": 3

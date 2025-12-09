@@ -8,6 +8,7 @@ import 'package:qadaa_prayer_tracker/views/registration/sign_in_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qadaa_prayer_tracker/views/edit_logged_prayers.dart';
 import 'package:qadaa_prayer_tracker/core/services/dashboard_service.dart';
+import 'package:qadaa_prayer_tracker/core/animations/slide_page_route.dart';
 
 class SettingsDashboard extends StatefulWidget {
   final DailyTotals initial;
@@ -79,7 +80,10 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
   void _editLoggedPrayers() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const EditLoggedPrayers()),
+      SlidePageRoute(
+        page: const EditLoggedPrayers(),
+        direction: SlideDirection.rightToLeft,
+      ),
     );
 
     if (result == true && mounted) {
@@ -95,12 +99,13 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
   void _editDailyPlan() async {
     final updatedPlan = await Navigator.push<Map<String, int>>(
       context,
-      MaterialPageRoute(
-        builder: (_) => DailyPlan(
+      SlidePageRoute(
+        page: DailyPlan(
           totals: widget.remaining, // ✅ Pass remaining instead of initial
           perDay: widget.perDay,
           fromSettings: true,
         ),
+        direction: SlideDirection.rightToLeft,
       ),
     );
 
@@ -115,9 +120,10 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
   void _editMissedPrayers() async {
     final updatedTotals = await Navigator.push<DailyTotals>(
       context,
-      MaterialPageRoute(
-          builder: (_) =>
-              QadaaMissed(initialTotals: _currentInitial, isEditing: true)),
+      SlidePageRoute(
+        page: QadaaMissed(initialTotals: _currentInitial, isEditing: true),
+        direction: SlideDirection.rightToLeft,
+      ),
     );
 
     if (updatedTotals != null) {
@@ -263,7 +269,10 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
               if (context.mounted) {
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (_) => const QadaaMissed()),
+                  SlidePageRoute(
+                    page: const QadaaMissed(),
+                    direction: SlideDirection.rightToLeft,
+                  ),
                   (route) => false,
                 );
 
@@ -293,7 +302,10 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
 
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (_) => const SignInScreen()),
+          SlidePageRoute(
+            page: const SignInScreen(),
+            direction: SlideDirection.rightToLeft,
+          ),
           (route) => false,
         );
       }
@@ -325,7 +337,10 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
               if (context.mounted) {
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (_) => const SignInScreen()),
+                  SlidePageRoute(
+                    page: const SignInScreen(),
+                    direction: SlideDirection.rightToLeft,
+                  ),
                   (route) => false,
                 );
 

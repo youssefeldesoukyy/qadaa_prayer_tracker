@@ -5,6 +5,7 @@ import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'Dashboard/home_dashboard.dart';
 import 'package:qadaa_prayer_tracker/core/services/dashboard_service.dart';
+import 'package:qadaa_prayer_tracker/core/animations/slide_page_route.dart';
 
 class DailyPlan extends StatefulWidget {
   final DailyTotals totals;
@@ -137,11 +138,12 @@ class _DailyPlanState extends State<DailyPlan> {
       }
     } else {
       if (!mounted) return;
-      final route = MaterialPageRoute(
-        builder: (_) => HomeDashboard(
+      final route = SlidePageRoute(
+        page: HomeDashboard(
           initial: widget.totals,
           perDay: perDay,
         ),
+        direction: SlideDirection.rightToLeft,
       );
       Navigator.pushReplacement(context, route);
     }

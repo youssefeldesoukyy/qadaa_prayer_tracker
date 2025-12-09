@@ -6,6 +6,7 @@ import 'package:qadaa_prayer_tracker/core/services/auth_service.dart';
 import 'package:qadaa_prayer_tracker/Views/Dashboard/home_dashboard.dart';
 import 'package:qadaa_prayer_tracker/Views/qadaa_missed.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
+import 'package:qadaa_prayer_tracker/core/animations/slide_page_route.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -108,7 +109,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
       case AuthTarget.qadaaSetup:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const QadaaMissed()),
+          SlidePageRoute(
+            page: const QadaaMissed(),
+            direction: SlideDirection.rightToLeft,
+          ),
         );
         break;
       case AuthTarget.homeDashboard:
@@ -116,17 +120,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
         if (totals == null) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const QadaaMissed()),
+            SlidePageRoute(
+              page: const QadaaMissed(),
+              direction: SlideDirection.rightToLeft,
+            ),
           );
           return;
         }
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (_) => HomeDashboard(
+          SlidePageRoute(
+            page: HomeDashboard(
               initial: totals,
               perDay: result.perDay,
             ),
+            direction: SlideDirection.rightToLeft,
           ),
         );
         break;

@@ -9,6 +9,7 @@ import 'package:qadaa_prayer_tracker/Views/Dashboard/home_dashboard.dart';
 import 'package:qadaa_prayer_tracker/Views/qadaa_missed.dart';
 import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/views/registration/sign_up_screen.dart';
+import 'package:qadaa_prayer_tracker/core/animations/slide_page_route.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -182,7 +183,10 @@ class _SignInScreenState extends State<SignInScreen> {
       case AuthTarget.qadaaSetup:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const QadaaMissed()),
+          SlidePageRoute(
+            page: const QadaaMissed(),
+            direction: SlideDirection.rightToLeft,
+          ),
         );
         break;
       case AuthTarget.homeDashboard:
@@ -190,17 +194,21 @@ class _SignInScreenState extends State<SignInScreen> {
         if (totals == null) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const QadaaMissed()),
+            SlidePageRoute(
+              page: const QadaaMissed(),
+              direction: SlideDirection.rightToLeft,
+            ),
           );
           return;
         }
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (_) => HomeDashboard(
+          SlidePageRoute(
+            page: HomeDashboard(
               initial: totals,
               perDay: result.perDay,
             ),
+            direction: SlideDirection.rightToLeft,
           ),
         );
         break;
@@ -583,8 +591,9 @@ class _SignInScreenState extends State<SignInScreen> {
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const SignUpScreen(),
+                                  SlidePageRoute(
+                                    page: const SignUpScreen(),
+                                    direction: SlideDirection.rightToLeft,
                                   ),
                                 );
                               },

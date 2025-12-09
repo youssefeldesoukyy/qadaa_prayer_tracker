@@ -5,6 +5,7 @@ import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'package:qadaa_prayer_tracker/Views/daily_plan.dart';
 import 'package:qadaa_prayer_tracker/core/services/dashboard_service.dart';
+import 'package:qadaa_prayer_tracker/core/animations/slide_page_route.dart';
 
 class QadaaMissed extends StatefulWidget {
   final bool fromGuest; // ✅ distinguish guest vs logged user
@@ -329,8 +330,9 @@ class _QadaaMissedState extends State<QadaaMissed> {
 
     if (!mounted) return;
 
-    final nextPage = MaterialPageRoute(
-      builder: (_) => DailyPlan(totals: totals),
+    final nextPage = SlidePageRoute(
+      page: DailyPlan(totals: totals),
+      direction: SlideDirection.rightToLeft,
     );
 
     if (shouldUseGuestFlow) {

@@ -5,7 +5,7 @@ import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/views/registration/auth_wrapper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'dart:ui' as ui;
+import 'package:google_fonts/google_fonts.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -65,6 +65,11 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    // Choose font based on locale: Araboto for Arabic, Roboto for English
+    final textTheme = _locale.languageCode == 'ar'
+        ? ThemeData.light().textTheme.apply(fontFamily: 'Araboto')
+        : GoogleFonts.robotoTextTheme();
+    
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       locale: _locale,
@@ -75,6 +80,10 @@ class _MyAppState extends State<MyApp> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+      theme: ThemeData(
+        textTheme: textTheme,
+        useMaterial3: true,
+      ),
       home: const AuthWrapper(),
     );
   }

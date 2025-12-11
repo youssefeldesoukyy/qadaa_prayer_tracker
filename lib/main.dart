@@ -70,6 +70,12 @@ class _MyAppState extends State<MyApp> {
         ? ThemeData.light().textTheme.apply(fontFamily: 'Araboto')
         : GoogleFonts.robotoTextTheme();
     
+    // Make button text bold for Arabic
+    final isArabic = _locale.languageCode == 'ar';
+    final buttonTextStyle = TextStyle(
+      fontWeight: isArabic ? FontWeight.bold : FontWeight.normal,
+    );
+    
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       locale: _locale,
@@ -83,6 +89,21 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData(
         textTheme: textTheme,
         useMaterial3: true,
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            textStyle: buttonTextStyle,
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            textStyle: buttonTextStyle,
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            textStyle: buttonTextStyle,
+          ),
+        ),
       ),
       home: const AuthWrapper(),
     );

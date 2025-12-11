@@ -173,8 +173,10 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child:
-                Text(loc.cancel, style: const TextStyle(color: AppColors.text)),
+            child: Text(
+              loc.cancel,
+              style: AppColors.buttonTextStyle(ctx, color: AppColors.text),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -250,8 +252,10 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child:
-                Text(loc.cancel, style: const TextStyle(color: AppColors.text)),
+            child: Text(
+              loc.cancel,
+              style: AppColors.buttonTextStyle(ctx, color: AppColors.text),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -321,8 +325,10 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child:
-                Text(loc.cancel, style: const TextStyle(color: AppColors.text)),
+            child: Text(
+              loc.cancel,
+              style: AppColors.buttonTextStyle(ctx, color: AppColors.text),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -400,7 +406,10 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
               child: ElevatedButton.icon(
                 onPressed: _handleAuthButtonPressed,
                 icon: Icon(_isGuest ? Icons.login : Icons.logout, size: 18),
-                label: Text(_isGuest ? loc.signIn : loc.logout),
+                label: Text(
+                  _isGuest ? loc.signIn : loc.logout,
+                  style: AppColors.buttonTextStyle(context),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
                       _isGuest ? AppColors.primary : Colors.grey.shade800,
@@ -456,7 +465,10 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
               child: OutlinedButton.icon(
                 onPressed: _editMissedPrayers,
                 icon: const Icon(Icons.edit, size: 18),
-                label: Text(loc.editMissedPrayers),
+                label: Text(
+                  loc.editMissedPrayers,
+                  style: AppColors.buttonTextStyle(context),
+                ),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.primary,
                   side: const BorderSide(color: AppColors.primary),
@@ -474,7 +486,10 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
               child: OutlinedButton.icon(
                 onPressed: _editLoggedPrayers,
                 icon: const Icon(Icons.edit_calendar, size: 18),
-                label: Text(loc.editLogs),
+                label: Text(
+                  loc.editLogs,
+                  style: AppColors.buttonTextStyle(context),
+                ),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.primary,
                   side: const BorderSide(color: AppColors.primary),
@@ -516,7 +531,10 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
               child: OutlinedButton.icon(
                 onPressed: _editDailyPlan,
                 icon: const Icon(Icons.edit, size: 18),
-                label: Text(loc.editPlan),
+                label: Text(
+                  loc.editPlan,
+                  style: AppColors.buttonTextStyle(context),
+                ),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.primary,
                   side: BorderSide(color: AppColors.primary),
@@ -601,7 +619,10 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
               child: ElevatedButton.icon(
                 onPressed: _resetAllData,
                 icon: const Icon(Icons.refresh, size: 18),
-                label: Text(loc.resetAllData),
+                label: Text(
+                  loc.resetAllData,
+                  style: AppColors.buttonTextStyle(context),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,

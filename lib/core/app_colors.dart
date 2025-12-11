@@ -3,6 +3,16 @@ import 'package:flutter/material.dart';
 /// App color constants
 class AppColors {
   AppColors._(); // Private constructor to prevent instantiation
+  
+  /// Gets button text style with bold font weight for Arabic
+  static TextStyle buttonTextStyle(BuildContext context, {Color? color}) {
+    final locale = Localizations.localeOf(context);
+    final isArabic = locale.languageCode == 'ar';
+    return TextStyle(
+      color: color,
+      fontWeight: isArabic ? FontWeight.bold : FontWeight.normal,
+    );
+  }
 
   /// Text color: #070c1d
   static const Color text = Color(0xFF070C1D);

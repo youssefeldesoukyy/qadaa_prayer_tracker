@@ -261,8 +261,10 @@ class _SignInScreenState extends State<SignInScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(loc.cancel,
-                  style: const TextStyle(color: AppColors.primary)),
+              child: Text(
+                loc.cancel,
+                style: AppColors.buttonTextStyle(context, color: AppColors.primary),
+              ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(

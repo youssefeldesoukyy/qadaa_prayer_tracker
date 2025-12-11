@@ -21,7 +21,7 @@ class HomeDashboard extends StatefulWidget {
 }
 
 class _HomeDashboardState extends State<HomeDashboard>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   int _tabIndex = 0;
   late DailyTotals _initial;
   late DailyTotals _remaining;
@@ -30,13 +30,43 @@ class _HomeDashboardState extends State<HomeDashboard>
   bool _isGuest = false;
   Map<String, dynamic> _guestLogs = {};
   final DashboardService _dashboardService = DashboardService();
+  
+  // Animation controllers
+  final Map<String, AnimationController> _buttonControllers = {};
+  late AnimationController _dialogAnimationController;
 
   @override
   void initState() {
     super.initState();
     _initial = widget.initial;
     _remaining = widget.initial;
+    
+    // Initialize animation controllers for each prayer button
+    final prayerKeys = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+    for (final key in prayerKeys) {
+      _buttonControllers[key] = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 200),
+      );
+    }
+    
+    // Initialize dialog animation controller
+    _dialogAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    
     _loadDashboardData();
+  }
+  
+  @override
+  void dispose() {
+    // Dispose all animation controllers
+    for (final controller in _buttonControllers.values) {
+      controller.dispose();
+    }
+    _dialogAnimationController.dispose();
+    super.dispose();
   }
 
   // ✅ Reload data from storage when called from settings
@@ -73,6 +103,14 @@ class _HomeDashboardState extends State<HomeDashboard>
   void _logOne(String prayerKey) async {
     final loc = AppLocalizations.of(context)!;
     bool logged = false;
+
+    // Animate button press
+    final buttonController = _buttonControllers[prayerKey];
+    if (buttonController != null) {
+      buttonController.forward().then((_) {
+        buttonController.reverse();
+      });
+    }
 
     setState(() {
       switch (prayerKey) {
@@ -127,7 +165,7 @@ class _HomeDashboardState extends State<HomeDashboard>
     final subtitle =
     logged ? loc.prayerCompleted(label) : loc.noPrayerRemaining(label);
 
-    _showCenteredNotice(title: title, subtitle: subtitle);
+    _showCenteredNotice(title: title, subtitle: subtitle, isSuccess: logged);
 
     if (logged) {
       try {
@@ -145,38 +183,126 @@ class _HomeDashboardState extends State<HomeDashboard>
     }
   }
 
-  void _showCenteredNotice({required String title, required String subtitle}) {
+  void _showCenteredNotice({
+    required String title,
+    required String subtitle,
+    bool isSuccess = false,
+  }) {
     final loc = AppLocalizations.of(context)!;
+    
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
       barrierLabel: loc.barrierDismiss,
       barrierColor: Colors.black.withValues(alpha: 0.4),
-      transitionDuration: const Duration(milliseconds: 200),
-      pageBuilder: (ctx, _, __) {
-        Future.delayed(const Duration(milliseconds: 750), () {
-          if (Navigator.of(ctx).canPop()) Navigator.of(ctx).pop();
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (ctx, animation, secondaryAnimation) {
+        // Use the built-in animation from showGeneralDialog
+        final scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+          CurvedAnimation(
+            parent: animation,
+            curve: Curves.elasticOut,
+          ),
+        );
+        
+        final fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+          CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeIn,
+          ),
+        );
+        
+        final iconScaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+          CurvedAnimation(
+            parent: animation,
+            curve: const Interval(0.0, 0.6, curve: Curves.elasticOut),
+          ),
+        );
+        
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (Navigator.of(ctx).canPop()) {
+            Navigator.of(ctx).pop();
+          }
         });
-        return Center(
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 24),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w700, color: AppColors.text)),
-                  const SizedBox(height: 6),
-                  Text(subtitle, style: const TextStyle(color: AppColors.text)),
-                ],
+        
+        return FadeTransition(
+          opacity: fadeAnimation,
+          child: ScaleTransition(
+            scale: scaleAnimation,
+            child: Center(
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (isSuccess)
+                        ScaleTransition(
+                          scale: iconScaleAnimation,
+                          child: Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.check_circle,
+                              color: AppColors.primary,
+                              size: 40,
+                            ),
+                          ),
+                        )
+                      else
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: AppColors.secondary.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.info_outline,
+                            color: AppColors.secondary,
+                            size: 40,
+                          ),
+                        ),
+                      if (isSuccess) const SizedBox(height: 16),
+                      Text(
+                        title,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 18,
+                          color: AppColors.text,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        subtitle,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: AppColors.text,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -193,8 +319,6 @@ class _HomeDashboardState extends State<HomeDashboard>
         color: AppColors.primary,
       ),
     );
-
-    final percentText = '${(_progress * 100).floor()}%';
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -213,42 +337,59 @@ class _HomeDashboardState extends State<HomeDashboard>
             Text(loc.totalProgress,
                 style: const TextStyle(color: AppColors.text)),
             const SizedBox(height: 24),
-            SizedBox(
-              width: 180,
-              height: 180,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    width: 180,
-                    height: 180,
-                    child: CircularProgressIndicator(
-                      value: _progress,
-                      strokeWidth: 14,
-                      backgroundColor: AppColors.accent.withValues(alpha: 0.1),
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+            TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0.0, end: _progress),
+              duration: const Duration(milliseconds: 800),
+              curve: Curves.easeOutCubic,
+              builder: (context, animatedProgress, child) {
+                return SizedBox(
+                  width: 180,
+                  height: 180,
+                  child: Stack(
+                    alignment: Alignment.center,
                     children: [
-                      Text(
-                        percentText,
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.text,
+                      SizedBox(
+                        width: 180,
+                        height: 180,
+                        child: CircularProgressIndicator(
+                          value: animatedProgress,
+                          strokeWidth: 14,
+                          backgroundColor: AppColors.accent.withValues(alpha: 0.1),
+                          color: AppColors.primary,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        loc.complete,
-                        style: const TextStyle(color: AppColors.text),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TweenAnimationBuilder<int>(
+                            tween: IntTween(
+                              begin: 0,
+                              end: (_progress * 100).floor(),
+                            ),
+                            duration: const Duration(milliseconds: 800),
+                            curve: Curves.easeOutCubic,
+                            builder: (context, animatedValue, child) {
+                              return Text(
+                                '$animatedValue%',
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.text,
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            loc.complete,
+                            style: const TextStyle(color: AppColors.text),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
+                );
+              },
             ),
             const SizedBox(height: 24),
             IntrinsicHeight(
@@ -347,80 +488,104 @@ class _HomeDashboardState extends State<HomeDashboard>
     final pct = initial == 0 ? 0.0 : completed / initial;
 
     final loc = AppLocalizations.of(context)!;
+    final buttonController = _buttonControllers[key] ?? _dialogAnimationController;
+    
+    // Create scale animation for button press
+    final scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(
+        parent: buttonController,
+        curve: Curves.easeInOut,
+      ),
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
-      child: InkWell(
-        onTap: () => _logOne(key),
-        borderRadius: BorderRadius.circular(12),
-        splashColor: AppColors.primary.withValues(alpha: 0.1),
-        highlightColor: AppColors.primary.withValues(alpha: 0.05),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: AppColors.secondary.withValues(alpha: 0.3),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(icon, color: AppColors.primary),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      label,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        color: AppColors.text,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    '$completed/$initial',
-                    style: const TextStyle(color: AppColors.text),
-                  ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    Icons.chevron_right,
-                    color: AppColors.primary.withValues(alpha: 0.6),
-                    size: 20,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Container(
+      child: AnimatedBuilder(
+        animation: buttonController,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: scaleAnimation.value,
+            child: InkWell(
+              onTap: () => _logOne(key),
+              borderRadius: BorderRadius.circular(12),
+              splashColor: AppColors.primary.withValues(alpha: 0.1),
+              highlightColor: AppColors.primary.withValues(alpha: 0.05),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: AppColors.secondary.withValues(alpha: 0.3),
                   ),
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: LinearProgressIndicator(
-                    value: pct,
-                    minHeight: 8,
-                    backgroundColor: AppColors.accent.withValues(alpha: 0.1),
-                    color: AppColors.primary,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(icon, color: AppColors.primary),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            label,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                              color: AppColors.text,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          '$completed/$initial',
+                          style: const TextStyle(color: AppColors.text),
+                        ),
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.chevron_right,
+                          color: AppColors.primary.withValues(alpha: 0.6),
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: AppColors.secondary.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: TweenAnimationBuilder<double>(
+                          tween: Tween<double>(begin: 0.0, end: pct),
+                          duration: const Duration(milliseconds: 600),
+                          curve: Curves.easeOutCubic,
+                          builder: (context, animatedValue, child) {
+                            return LinearProgressIndicator(
+                              value: animatedValue,
+                              minHeight: 8,
+                              backgroundColor: AppColors.accent.withValues(alpha: 0.1),
+                              color: AppColors.primary,
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        '$remaining ${loc.remaining}',
+                        style: const TextStyle(color: AppColors.text, fontSize: 13),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  '$remaining ${loc.remaining}',
-                  style: const TextStyle(color: AppColors.text, fontSize: 13),
-                ),
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }

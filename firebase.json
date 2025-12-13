@@ -1,1 +1,36 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"qadaatrackerapp-75e01","appId":"1:578896216985:android:fe98021377d76ae59c4908","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"qadaatrackerapp-75e01","configurations":{"android":"1:578896216985:android:fe98021377d76ae59c4908","ios":"1:578896216985:ios:cdcc9aaf53db1d309c4908"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "qadaatrackerapp-75e01",
+          "appId": "1:578896216985:android:fe98021377d76ae59c4908",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "qadaatrackerapp-75e01",
+          "configurations": {
+            "android": "1:578896216985:android:fe98021377d76ae59c4908",
+            "ios": "1:578896216985:ios:cdcc9aaf53db1d309c4908"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

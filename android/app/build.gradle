@@ -8,6 +8,12 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace "com.itmam.app"
     compileSdk 36
@@ -21,6 +27,20 @@ android {
         versionName flutter.versionName
     }
 
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                def keystorePath = keystoreProperties['storeFile']
+                if (keystorePath) {
+                    storeFile file(keystorePath)
+                }
+                storePassword keystoreProperties['storePassword']
+            }
+        }
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
@@ -32,8 +52,9 @@ android {
 
     buildTypes {
         release {
-            // ⚠️ Replace with your real signing config before publishing
-            signingConfig signingConfigs.debug
+            if (keystorePropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             shrinkResources false
         }

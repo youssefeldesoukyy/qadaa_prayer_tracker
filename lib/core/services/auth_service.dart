@@ -20,8 +20,11 @@ class AuthService {
         _googleSignIn = googleSignIn ??
             GoogleSignIn(
               scopes: const ['email'],
-              // iOS client ID from Firebase
-              clientId: '578896216985-h8ol6ju3gkvlg3ffgm75phd34qe3fdfc.apps.googleusercontent.com',
+              // iOS client ID from Firebase - only needed on iOS
+              // Android reads from google-services.json automatically
+              clientId: Platform.isIOS
+                  ? '578896216985-0qath7ujbl3gu4q80berbt3iv18f43b8.apps.googleusercontent.com'
+                  : null,
             );
 
   final FirebaseAuth _auth;
@@ -90,7 +93,7 @@ class AuthService {
             AppleIDAuthorizationScopes.fullName,
           ],
           webAuthenticationOptions: WebAuthenticationOptions(
-            clientId: 'com.example.itmam',
+            clientId: 'com.itmam.app',
             redirectUri: Uri.parse(
               'https://qadaatrackerapp-75e01.firebaseapp.com/__/auth/handler',
             ),

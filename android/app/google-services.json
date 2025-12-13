@@ -7,12 +7,20 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:578896216985:android:c9665f6d037ad23f9c4908",
+        "mobilesdk_app_id": "1:578896216985:android:121d3667836550ad9c4908",
         "android_client_info": {
-          "package_name": "com.example.itmam"
+          "package_name": "com.itmam.app"
         }
       },
       "oauth_client": [
+        {
+          "client_id": "578896216985-at9m8f15i7c5aepib8er6l5po2em1eed.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.itmam.app",
+            "certificate_hash": "207dee503c3384068c7a47007f70f99dbd6e8cf9"
+          }
+        },
         {
           "client_id": "578896216985-cl1fjlogdm65vna2rjllismoginkotlv.apps.googleusercontent.com",
           "client_type": 3
@@ -31,10 +39,10 @@
               "client_type": 3
             },
             {
-              "client_id": "578896216985-h8ol6ju3gkvlg3ffgm75phd34qe3fdfc.apps.googleusercontent.com",
+              "client_id": "578896216985-0qath7ujbl3gu4q80berbt3iv18f43b8.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.qadaaPrayerTracker"
+                "bundle_id": "com.itmam.app"
               }
             }
           ]

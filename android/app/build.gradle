@@ -9,12 +9,12 @@ plugins {
 }
 
 android {
-    namespace "com.example.itmam"
+    namespace "com.itmam.app"
     compileSdk 36
     ndkVersion "27.0.12077973"
 
     defaultConfig {
-        applicationId "com.example.itmam"
+        applicationId "com.itmam.app"
         minSdkVersion flutter.minSdkVersion
         targetSdk 36
         versionCode flutter.versionCode

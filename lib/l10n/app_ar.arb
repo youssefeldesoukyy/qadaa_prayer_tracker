@@ -192,5 +192,7 @@
         "type": "String"
       }
     }
-  }
+  },
+
+  "errorLoadingUserData": "حدث خطأ في تحميل بيانات المستخدم."
 }

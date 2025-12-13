@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qadaa_prayer_tracker/core/app_colors.dart';
+import 'package:qadaa_prayer_tracker/l10n/app_localizations.dart';
 import 'package:qadaa_prayer_tracker/models/daily_totals.dart';
 import 'package:qadaa_prayer_tracker/views/dashboard/home_dashboard.dart';
 import 'package:qadaa_prayer_tracker/views/qadaa_missed.dart';
@@ -93,8 +94,11 @@ class AuthWrapper extends StatelessWidget {
           );
         } else if (snapshot.hasError) {
           debugPrint('❌ Error: ${snapshot.error}');
-          return const Scaffold(
-            body: Center(child: Text("Error loading user data.")),
+          final loc = AppLocalizations.of(context);
+          return Scaffold(
+            body: Center(
+              child: Text(loc?.errorLoadingUserData ?? "Error loading user data."),
+            ),
           );
         } else {
           return snapshot.data ?? const SignInScreen();

@@ -943,6 +943,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{prayer} can\'t exceed {max}'**
   String validationCantExceed(String prayer, String max);
+
+  /// No description provided for @errorLoadingUserData.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading user data.'**
+  String get errorLoadingUserData;
 }
 
 class _AppLocalizationsDelegate

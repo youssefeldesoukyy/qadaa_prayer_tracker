@@ -455,4 +455,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String validationCantExceed(String prayer, String max) {
     return '$prayer can\'t exceed $max';
   }
+
+  @override
+  String get errorLoadingUserData => 'Error loading user data.';
 }

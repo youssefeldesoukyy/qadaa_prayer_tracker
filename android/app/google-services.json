@@ -14,14 +14,6 @@
       },
       "oauth_client": [
         {
-          "client_id": "578896216985-at9m8f15i7c5aepib8er6l5po2em1eed.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.itmam.app",
-            "certificate_hash": "207dee503c3384068c7a47007f70f99dbd6e8cf9"
-          }
-        },
-        {
           "client_id": "578896216985-cl1fjlogdm65vna2rjllismoginkotlv.apps.googleusercontent.com",
           "client_type": 3
         }

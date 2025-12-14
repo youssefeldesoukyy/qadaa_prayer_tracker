@@ -50,19 +50,19 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyA4C1OzohJ67iabQjvkcNF5DHSQWhtOrFo',
-    appId: '1:578896216985:android:fe98021377d76ae59c4908',
-    messagingSenderId: '578896216985',
-    projectId: 'qadaatrackerapp-75e01',
-    storageBucket: 'qadaatrackerapp-75e01.firebasestorage.app',
+    apiKey: 'AIzaSyDh-qnGkk7FLxVRPYGX1aM-3dtlJTnkjPw',
+    appId: '1:749140650336:android:59b50653b3ae8fc2365605',
+    messagingSenderId: '749140650336',
+    projectId: 'itmam-9c9db',
+    storageBucket: 'itmam-9c9db.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDZxVWagx2bJfDhDi-2eLdrmn328LtnxHU',
-    appId: '1:578896216985:ios:cdcc9aaf53db1d309c4908',
-    messagingSenderId: '578896216985',
-    projectId: 'qadaatrackerapp-75e01',
-    storageBucket: 'qadaatrackerapp-75e01.firebasestorage.app',
+    apiKey: 'AIzaSyDpwLutmMtJOr8Ic-pvsGiBlOQx_61FwX4',
+    appId: '1:749140650336:ios:5dc83fdce9b0302b365605',
+    messagingSenderId: '749140650336',
+    projectId: 'itmam-9c9db',
+    storageBucket: 'itmam-9c9db.firebasestorage.app',
     iosBundleId: 'com.itmam.app',
   );
 }

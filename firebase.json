@@ -3,18 +3,25 @@
     "platforms": {
       "android": {
         "default": {
-          "projectId": "qadaatrackerapp-75e01",
-          "appId": "1:578896216985:android:fe98021377d76ae59c4908",
+          "projectId": "itmam-9c9db",
+          "appId": "1:749140650336:android:59b50653b3ae8fc2365605",
           "fileOutput": "android/app/google-services.json"
         }
       },
-      "dart": {
-        "lib/firebase_options.dart": {
-          "projectId": "qadaatrackerapp-75e01",
-          "configurations": {
-            "android": "1:578896216985:android:fe98021377d76ae59c4908",
-            "ios": "1:578896216985:ios:cdcc9aaf53db1d309c4908"
-          }
+      "ios": {
+        "default": {
+          "projectId": "itmam-9c9db",
+          "appId": "1:749140650336:ios:5dc83fdce9b0302b365605",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "macos": {
+        "default": {
+          "projectId": "itmam-9c9db",
+          "appId": "1:749140650336:ios:5dc83fdce9b0302b365605",
+          "uploadDebugSymbols": false,
+          "fileOutput": "macos/Runner/GoogleService-Info.plist"
         }
       }
     }

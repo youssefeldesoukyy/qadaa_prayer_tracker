@@ -14,6 +14,26 @@ class AppColors {
     );
   }
 
+  /// Gets text style with bold font weight for Arabic
+  /// If Arabic is selected, fontWeight will always be bold (or the minimum weight if a heavier weight is specified)
+  static TextStyle textStyle(BuildContext context, {
+    Color? color,
+    double? fontSize,
+    FontWeight? fontWeight,
+  }) {
+    final locale = Localizations.localeOf(context);
+    final isArabic = locale.languageCode == 'ar';
+    return TextStyle(
+      color: color,
+      fontSize: fontSize,
+      fontWeight: isArabic 
+          ? (fontWeight != null && fontWeight.value > FontWeight.bold.value 
+              ? fontWeight 
+              : FontWeight.bold)
+          : (fontWeight ?? FontWeight.normal),
+    );
+  }
+
   /// Text color: #070c1d
   static const Color text = Color(0xFF070C1D);
 

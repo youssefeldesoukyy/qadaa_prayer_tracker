@@ -23,7 +23,7 @@ class AuthService {
               // iOS client ID from Firebase - only needed on iOS
               // Android reads from google-services.json automatically
               clientId: Platform.isIOS
-                  ? '578896216985-0qath7ujbl3gu4q80berbt3iv18f43b8.apps.googleusercontent.com'
+                  ? '749140650336-s1canm71ntv7qc020qjlr1mcfnlqk0pk.apps.googleusercontent.com'
                   : null,
             );
 
@@ -95,7 +95,7 @@ class AuthService {
           webAuthenticationOptions: WebAuthenticationOptions(
             clientId: 'com.itmam.app',
             redirectUri: Uri.parse(
-              'https://qadaatrackerapp-75e01.firebaseapp.com/__/auth/handler',
+              'https://itmam-9c9db.firebaseapp.com/__/auth/handler',
             ),
           ),
         );

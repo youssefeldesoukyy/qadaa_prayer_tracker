@@ -66,12 +66,37 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     // Choose font based on locale: Araboto for Arabic, Roboto for English
-    final textTheme = _locale.languageCode == 'ar'
+    final isArabic = _locale.languageCode == 'ar';
+    final baseTextTheme = isArabic
         ? ThemeData.light().textTheme.apply(fontFamily: 'Araboto')
         : GoogleFonts.robotoTextTheme();
     
+    // Make all text bold for Arabic
+    final textTheme = isArabic
+        ? baseTextTheme.apply(
+            bodyColor: baseTextTheme.bodyLarge?.color,
+            displayColor: baseTextTheme.displayLarge?.color,
+            decorationColor: baseTextTheme.bodyLarge?.color,
+          ).copyWith(
+            displayLarge: baseTextTheme.displayLarge?.copyWith(fontWeight: FontWeight.bold),
+            displayMedium: baseTextTheme.displayMedium?.copyWith(fontWeight: FontWeight.bold),
+            displaySmall: baseTextTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
+            headlineLarge: baseTextTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold),
+            headlineMedium: baseTextTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+            headlineSmall: baseTextTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            titleLarge: baseTextTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            titleMedium: baseTextTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            titleSmall: baseTextTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+            bodyLarge: baseTextTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+            bodyMedium: baseTextTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+            bodySmall: baseTextTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+            labelLarge: baseTextTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold),
+            labelMedium: baseTextTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold),
+            labelSmall: baseTextTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold),
+          )
+        : baseTextTheme;
+    
     // Make button text bold for Arabic
-    final isArabic = _locale.languageCode == 'ar';
     final buttonTextStyle = TextStyle(
       fontWeight: isArabic ? FontWeight.bold : FontWeight.normal,
     );

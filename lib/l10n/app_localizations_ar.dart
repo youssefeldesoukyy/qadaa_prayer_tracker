@@ -224,6 +224,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get resetAllData => 'إعادة تعيين جميع البيانات';
 
   @override
+  String get deleteAccount => 'حذف الحساب';
+
+  @override
+  String get deleteAccountTitle => 'حذف الحساب';
+
+  @override
+  String get deleteAccountWarning =>
+      'هل أنت متأكد أنك تريد حذف حسابك؟ لا يمكن التراجع عن هذا الإجراء. سيتم حذف جميع بياناتك بما في ذلك التقدم والخطة وسجل الصلوات بشكل دائم.';
+
+  @override
+  String get accountDeleted => 'تم حذف الحساب بنجاح';
+
+  @override
+  String get deleteAccountFailed => 'فشل حذف الحساب. يرجى المحاولة مرة أخرى.';
+
+  @override
   String get areYouSure => 'هل أنت متأكد؟';
 
   @override
@@ -285,7 +301,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get signIn => 'تسجيل الدخول';
 
   @override
-  String get orContinueWith => 'أو تابع باستخدام';
+  String get or => 'أو';
 
   @override
   String get signInTagline => 'تتبع صلواتك الفائتة بسهولة.';
@@ -307,9 +323,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get lastName => 'اسم العائلة';
-
-  @override
-  String get phoneNumber => 'رقم الهاتف';
 
   @override
   String get confirmPassword => 'تأكيد كلمة المرور';
@@ -378,6 +391,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get apple => 'آبل';
+
+  @override
+  String get signInWithGoogle => 'تسجيل الدخول باستخدام جوجل';
+
+  @override
+  String get signInWithApple => 'تسجيل الدخول باستخدام آبل';
 
   @override
   String get continueAsGuest => 'المتابعة كضيف';

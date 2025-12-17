@@ -18,7 +18,6 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
-  final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -33,7 +32,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     final firstName = _firstNameController.text.trim();
     final lastName = _lastNameController.text.trim();
-    final phone = _phoneController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
@@ -41,7 +39,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     // Validation checks
     if (firstName.isEmpty ||
         lastName.isEmpty ||
-        phone.isEmpty ||
         email.isEmpty ||
         password.isEmpty ||
         confirmPassword.isEmpty) {
@@ -64,7 +61,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       final result = await _authService.signUp(
         firstName: firstName,
         lastName: lastName,
-        phoneNumber: phone,
         email: email,
         password: password,
       );
@@ -268,14 +264,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               ),
                             ),
                           ],
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: _phoneController,
-                          keyboardType: TextInputType.phone,
-                          cursorColor: AppColors.primary,
-                          decoration: _inputDecoration(
-                              loc.phoneNumber, Icons.call_outlined),
                         ),
                         const SizedBox(height: 16),
                         TextField(

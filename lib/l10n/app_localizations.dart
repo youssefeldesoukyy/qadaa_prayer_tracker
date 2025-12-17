@@ -518,6 +518,36 @@ abstract class AppLocalizations {
   /// **'Reset All Data'**
   String get resetAllData;
 
+  /// No description provided for @deleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account'**
+  String get deleteAccount;
+
+  /// No description provided for @deleteAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account'**
+  String get deleteAccountTitle;
+
+  /// No description provided for @deleteAccountWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete your account? This action cannot be undone. All your data including your progress, plan, and prayer logs will be permanently deleted.'**
+  String get deleteAccountWarning;
+
+  /// No description provided for @accountDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deleted successfully'**
+  String get accountDeleted;
+
+  /// No description provided for @deleteAccountFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete account. Please try again.'**
+  String get deleteAccountFailed;
+
   /// No description provided for @areYouSure.
   ///
   /// In en, this message translates to:
@@ -638,11 +668,11 @@ abstract class AppLocalizations {
   /// **'Sign In'**
   String get signIn;
 
-  /// No description provided for @orContinueWith.
+  /// No description provided for @or.
   ///
   /// In en, this message translates to:
-  /// **'Or continue with'**
-  String get orContinueWith;
+  /// **'Or'**
+  String get or;
 
   /// No description provided for @signInTagline.
   ///
@@ -685,12 +715,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last Name'**
   String get lastName;
-
-  /// No description provided for @phoneNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Phone Number'**
-  String get phoneNumber;
 
   /// No description provided for @confirmPassword.
   ///
@@ -823,6 +847,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apple'**
   String get apple;
+
+  /// No description provided for @signInWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Google'**
+  String get signInWithGoogle;
+
+  /// No description provided for @signInWithApple.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Apple'**
+  String get signInWithApple;
 
   /// No description provided for @continueAsGuest.
   ///

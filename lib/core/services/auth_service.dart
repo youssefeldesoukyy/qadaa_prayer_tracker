@@ -169,7 +169,6 @@ class AuthService {
   Future<AuthFlowResult> signUp({
     required String firstName,
     required String lastName,
-    required String phoneNumber,
     required String email,
     required String password,
   }) async {
@@ -190,7 +189,6 @@ class AuthService {
       'id': user.uid,
       'firstName': firstName.trim(),
       'lastName': lastName.trim(),
-      'mobileNumber': phoneNumber.trim(),
       'email': email.trim(),
       'createdAt': FieldValue.serverTimestamp(),
       'prayerPlan': {
@@ -230,6 +228,30 @@ class AuthService {
 
   Future<void> sendPasswordReset(String email) {
     return _auth.sendPasswordResetEmail(email: email);
+  }
+
+  /// Deletes the user account from Firebase Auth and Firestore
+  Future<void> deleteAccount() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw FirebaseAuthException(
+        code: 'no-current-user',
+        message: 'No user is currently signed in.',
+      );
+    }
+
+    final uid = user.uid;
+
+    // Delete Firestore document first
+    try {
+      await _firestore.collection('Users').doc(uid).delete();
+    } catch (e) {
+      debugPrint('Error deleting Firestore document: $e');
+      // Continue with auth deletion even if Firestore deletion fails
+    }
+
+    // Delete Firebase Auth user account
+    await user.delete();
   }
 
   Future<void> _ensureUserDocument(User user) async {

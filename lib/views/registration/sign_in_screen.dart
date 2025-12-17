@@ -490,11 +490,12 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        _buildSectionDivider(loc.orContinueWith),
+                        _buildSectionDivider(loc.or),
                         const SizedBox(height: 20),
-                        Row(
+                        Column(
                           children: [
-                            Expanded(
+                            SizedBox(
+                              width: double.infinity,
                               child: OutlinedButton(
                                 onPressed: _isLoading ? null : _signInWithGoogle,
                                 style: OutlinedButton.styleFrom(
@@ -514,7 +515,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                     ),
                                     const SizedBox(width: 10),
                                     Text(
-                                      loc.google,
+                                      loc.signInWithGoogle,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w600,
                                         color: AppColors.text,
@@ -524,17 +525,18 @@ class _SignInScreenState extends State<SignInScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: OutlinedButton(
+                            const SizedBox(height: 14),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
                                 onPressed: _isLoading ? null : _signInWithApple,
-                                style: OutlinedButton.styleFrom(
+                                style: ElevatedButton.styleFrom(
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 14),
-                                  side: BorderSide(
-                                    color: AppColors.primary.withValues(alpha: 0.5),
-                                  ),
+                                  backgroundColor: Colors.black,
+                                  foregroundColor: Colors.white,
                                   shape: const StadiumBorder(),
+                                  elevation: 0,
                                 ),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -542,13 +544,17 @@ class _SignInScreenState extends State<SignInScreen> {
                                     SvgPicture.asset(
                                       "assets/icons/apple.svg",
                                       height: 22,
+                                      colorFilter: const ColorFilter.mode(
+                                        Colors.white,
+                                        BlendMode.srcIn,
+                                      ),
                                     ),
                                     const SizedBox(width: 10),
                                     Text(
-                                      loc.apple,
+                                      loc.signInWithApple,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w600,
-                                        color: AppColors.text,
+                                        color: Colors.white,
                                       ),
                                     ),
                                   ],

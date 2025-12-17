@@ -226,6 +226,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resetAllData => 'Reset All Data';
 
   @override
+  String get deleteAccount => 'Delete Account';
+
+  @override
+  String get deleteAccountTitle => 'Delete Account';
+
+  @override
+  String get deleteAccountWarning =>
+      'Are you sure you want to delete your account? This action cannot be undone. All your data including your progress, plan, and prayer logs will be permanently deleted.';
+
+  @override
+  String get accountDeleted => 'Account deleted successfully';
+
+  @override
+  String get deleteAccountFailed =>
+      'Failed to delete account. Please try again.';
+
+  @override
   String get areYouSure => 'Are you sure?';
 
   @override
@@ -288,7 +305,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signIn => 'Sign In';
 
   @override
-  String get orContinueWith => 'Or continue with';
+  String get or => 'Or';
 
   @override
   String get signInTagline => 'Track your missed prayers effortlessly.';
@@ -311,9 +328,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lastName => 'Last Name';
-
-  @override
-  String get phoneNumber => 'Phone Number';
 
   @override
   String get confirmPassword => 'Confirm Password';
@@ -380,6 +394,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get apple => 'Apple';
+
+  @override
+  String get signInWithGoogle => 'Sign in with Google';
+
+  @override
+  String get signInWithApple => 'Sign in with Apple';
 
   @override
   String get continueAsGuest => 'Continue as Guest';

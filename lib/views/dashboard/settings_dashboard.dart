@@ -8,6 +8,7 @@ import 'package:qadaa_prayer_tracker/views/registration/sign_in_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qadaa_prayer_tracker/views/edit_logged_prayers.dart';
 import 'package:qadaa_prayer_tracker/core/services/dashboard_service.dart';
+import 'package:qadaa_prayer_tracker/core/services/auth_service.dart';
 import 'package:qadaa_prayer_tracker/core/animations/slide_page_route.dart';
 
 class SettingsDashboard extends StatefulWidget {
@@ -30,6 +31,7 @@ class SettingsDashboard extends StatefulWidget {
 
 class _SettingsDashboardState extends State<SettingsDashboard> {
   final DashboardService _dashboardService = DashboardService();
+  final AuthService _authService = AuthService();
   String _selectedLanguage = 'English';
   bool _isGuest = false;
   late DailyTotals _currentInitial;
@@ -286,6 +288,70 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
               }
             },
             child: Text(loc.confirmReset),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // -------------------------------------------------
+  // DELETE ACCOUNT
+  // -------------------------------------------------
+  Future<void> _deleteAccount() async {
+    final loc = AppLocalizations.of(context)!;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(loc.deleteAccountTitle),
+        content: Text(loc.deleteAccountWarning),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              loc.cancel,
+              style: AppColors.buttonTextStyle(ctx, color: AppColors.text),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              
+              try {
+                // Delete account from Firebase
+                await _authService.deleteAccount();
+                
+                // Clear local storage
+                await _clearLocalStorage();
+
+                if (context.mounted) {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    SlidePageRoute(
+                      page: const SignInScreen(),
+                      direction: SlideDirection.rightToLeft,
+                    ),
+                    (route) => false,
+                  );
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    AppColors.styledSnackBar(loc.accountDeleted),
+                  );
+                }
+              } catch (e) {
+                debugPrint('Error deleting account: $e');
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    AppColors.styledSnackBar(loc.deleteAccountFailed),
+                  );
+                }
+              }
+            },
+            child: Text(loc.confirm),
           ),
         ],
       ),
@@ -632,6 +698,28 @@ class _SettingsDashboardState extends State<SettingsDashboard> {
                 ),
               ),
             ),
+            // Only show delete account button if user is logged in (not guest)
+            if (!_isGuest) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _deleteAccount,
+                  icon: const Icon(Icons.delete_forever, size: 18),
+                  label: Text(
+                    loc.deleteAccount,
+                    style: AppColors.buttonTextStyle(context),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade900,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       );

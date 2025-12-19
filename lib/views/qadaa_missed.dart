@@ -110,18 +110,19 @@ class _QadaaMissedState extends State<QadaaMissed> {
             child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Back button - RTL-aware
-                  Align(
-                    alignment: Localizations.localeOf(context).languageCode == 'ar'
-                        ? Alignment.centerRight
-                        : Alignment.centerLeft,
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: AppColors.text),
-                      onPressed: () => Navigator.pop(context),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
+                  // Back button - RTL-aware (only show if we can pop)
+                  if (Navigator.canPop(context))
+                    Align(
+                      alignment: Localizations.localeOf(context).languageCode == 'ar'
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back, color: AppColors.text),
+                        onPressed: () => Navigator.maybePop(context),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
                     ),
-                  ),
                   const SizedBox(height: 8),
                         // Text(
                         //   loc.appTitle,

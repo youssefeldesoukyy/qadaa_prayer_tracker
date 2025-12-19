@@ -237,12 +237,15 @@ class _DailyPlanState extends State<DailyPlan> {
                   // Back button and title - same level
                   Row(
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: AppColors.text),
-                        onPressed: () => Navigator.pop(context),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
+                      if (Navigator.canPop(context))
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back, color: AppColors.text),
+                          onPressed: () => Navigator.maybePop(context),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        )
+                      else
+                        const SizedBox(width: 48), // Balance spacing when no back button
                       Expanded(
                         child: Text(
                           loc.setYourDailyPlan,
